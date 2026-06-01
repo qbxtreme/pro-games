@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Murder Mystery</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../../game-realism.css">
+  <link rel="stylesheet" href="../../../game-chat.css">
+  <link rel="stylesheet" href="../../../game-multiplayer.css">
+  <link rel="stylesheet" href="../../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="phase-banner" class="phase-banner day">☀️ Day</div>
+
+      <div id="world-hotbar" class="world-hotbar hidden">
+        <div id="hotbar-role" class="hotbar-role">🔪 ???</div>
+        <div id="hotbar-flavor" class="hotbar-flavor">Mansion</div>
+        <div class="hotbar-stats">
+          <span id="hotbar-tasks" class="hotbar-stat">☀️ Day phase</span>
+          <span id="hotbar-alive" class="hotbar-stat">👥 0 suspects</span>
+        </div>
+        <div id="hotbar-task-list" class="hotbar-task-list"></div>
+      </div>
+
+      <button id="use-btn" class="action-btn use-btn hidden" type="button">USE</button>
+      <button id="report-btn" class="action-btn report-btn hidden" type="button">🔬 AUTOPSY</button>
+
+      <div class="joystick-wrap">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="start-overlay" class="overlay">
+      <div class="panel start-panel">
+        <h1>🔪 Murder Mystery</h1>
+        <p class="tagline">Uncover the killer — or escape before it's too late!</p>
+        <p id="hero-line" class="hero-line">3 ROLES · PUZZLES · ESCAPE</p>
+        <ul id="feature-list" class="feature-list">
+          <li>🔍 <strong>Suspect</strong> — solve clues and escape</li>
+          <li>🔫 <strong>Detective</strong> — investigate and stop the killer</li>
+          <li>🔪 <strong>Murderer</strong> — eliminate all suspects in stealth</li>
+        </ul>
+        <input id="name-input" type="text" maxlength="14" placeholder="Your name..." value="Player">
+        <button id="play-btn" class="big-btn" type="button">Enter the Mansion</button>
+        <p class="hint">Joystick to walk · 👥 Multiplayer · Day phase only</p>
+      </div>
+    </div>
+
+    <div id="role-overlay" class="overlay hidden">
+      <div class="panel role-panel">
+        <p class="role-label">Your role this round…</p>
+        <div id="role-reveal" class="role-reveal">🔪 ???</div>
+        <p id="role-faction" class="role-faction"></p>
+        <p id="role-desc" class="role-desc"></p>
+        <button id="role-go-btn" class="big-btn" type="button">Go!</button>
+      </div>
+    </div>
+
+    <div id="result-overlay" class="overlay hidden">
+      <div class="panel result-panel">
+        <h2 id="result-title">Round Over!</h2>
+        <p id="result-desc"></p>
+        <button id="play-again-btn" class="big-btn" type="button">New Round 🎲</button>
+        <button id="leave-btn" class="small-btn" type="button">Leave</button>
+      </div>
+    </div>
+
+    <div id="settings-overlay" class="overlay hidden">
+      <div class="panel settings-panel">
+        <h2>⚙️ Settings</h2>
+        <button id="leave-game-btn" class="big-btn leave-btn" type="button">🏠 Back to Hub</button>
+        <button id="close-settings-btn" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <button id="settings-btn" class="settings-btn" type="button" title="Settings">⚙️</button>
+  </div>
+
+  <script src="map.js"></script>
+  <script src="roles.js"></script>
+  <script src="sprites.js"></script>
+  <script src="engine.js"></script>
+  <script src="../../../game-chat.js"></script>
+  <script src="../../../game-realism.js"></script>
+  <script src="../../../game-sfx.js"></script>
+  <script src="../../../game-multiplayer.js"></script>
+  <script src="../base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: (window.GAME_CONFIG && window.GAME_CONFIG.chatRoom) || "murder-3",
+      getName: () => document.getElementById("name-input")?.value.trim() || undefined,
+    });
+  </script></body>
+</html>

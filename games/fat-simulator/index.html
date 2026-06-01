@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Coco Devouring</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <button id="settings-btn" class="icon-btn" type="button" title="Settings">⚙️</button>
+      <div class="hud-top">
+        <span id="fat-display" class="stat-pill fat-pill">🍔 0 Fat</span>
+        <span id="coin-display" class="stat-pill coin-pill">💰 0</span>
+        <span id="trophy-display" class="stat-pill trophy-pill">🏆 0</span>
+      </div>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="leaderboard" class="leaderboard"></div>
+      <div id="move-pad" class="move-pad hidden">
+        <button id="move-up" class="move-btn" type="button" aria-label="Up">▲</button>
+        <div class="move-row">
+          <button id="move-left" class="move-btn" type="button" aria-label="Left">◀</button>
+          <button id="move-down" class="move-btn" type="button" aria-label="Down">▼</button>
+          <button id="move-right" class="move-btn" type="button" aria-label="Right">▶</button>
+        </div>
+      </div>
+      <div id="snack-toast" class="snack-toast hidden"></div>
+      <div id="zone-label" class="zone-label">🏠 Home</div>
+
+      <div id="start-overlay" class="overlay">
+        <div class="panel fat-panel">
+          <h1>🥥 Coco Devouring</h1>
+          <p class="tagline">Sneak through a realistic house and devour everything in sight!</p>
+          <ul class="feature-list">
+            <li>🏘️ Stroll down Main Street — snacks on the sidewalk!</li>
+            <li>🚪 Sneak into neighbor houses for even bigger feasts</li>
+            <li>🏠 Explore your home — front yard, kitchen, living room & backyard</li>
+            <li>🍪 Snatch snacks left on counters, tables, and floors</li>
+            <li>🥣 Eat from your food bowl for big fat gains</li>
+            <li>🏆 Battle bosses, hatch pets, and rebirth for power</li>
+          </ul>
+          <input id="name-input" type="text" maxlength="14" placeholder="Dog name..." value="Good Boy">
+          <p class="pick-label">Pick your dog:</p>
+          <div class="dog-row">
+            <button type="button" class="dog-pick selected" data-breed="golden">🐕 Golden</button>
+            <button type="button" class="dog-pick" data-breed="husky">🐺 Husky</button>
+            <button type="button" class="dog-pick" data-breed="corgi">🐶 Corgi</button>
+            <button type="button" class="dog-pick" data-breed="pug">🐩 Pug</button>
+          </div>
+          <button id="play-btn" class="big-btn">Play!</button>
+          <p class="controls-hint">Arrow keys / WASD to move · 👥 Multiplayer!</p>
+        </div>
+      </div>
+
+      <div id="boss-overlay" class="overlay hidden">
+        <div class="panel fat-panel boss-panel">
+          <h2 id="boss-title">⚔️ Boss Fight!</h2>
+          <div class="boss-arena">
+            <div class="fighter you-side">
+              <span id="boss-you-emoji">🐶</span>
+              <div class="hp-bar-wrap"><div id="boss-you-hp" class="hp-bar"></div></div>
+              <span id="boss-you-fat">0 fat</span>
+            </div>
+            <span class="vs">VS</span>
+            <div class="fighter boss-side">
+              <span id="boss-enemy-emoji">🐱</span>
+              <div class="hp-bar-wrap"><div id="boss-enemy-hp" class="hp-bar enemy"></div></div>
+              <span id="boss-enemy-name">Boss</span>
+            </div>
+          </div>
+          <button id="boss-attack-btn" class="big-btn attack-btn">💥 BITE ATTACK!</button>
+          <button id="boss-flee-btn" class="small-btn">Run away</button>
+        </div>
+      </div>
+
+      <div id="egg-overlay" class="overlay hidden">
+        <div class="panel fat-panel">
+          <h2>🥚 Hatching...</h2>
+          <div id="egg-shake" class="egg-shake">🥚</div>
+          <p id="egg-result" class="egg-result"></p>
+          <button id="egg-close-btn" class="big-btn hidden">Awesome!</button>
+        </div>
+      </div>
+
+      <div id="rebirth-overlay" class="overlay hidden">
+        <div class="panel fat-panel">
+          <h2>♻️ Rebirth!</h2>
+          <p id="rebirth-msg">Reset fat & coins for a permanent +15% fat boost!</p>
+          <p id="rebirth-level" class="rebirth-level">Rebirths: 0</p>
+          <button id="rebirth-confirm-btn" class="big-btn rebirth-btn">Rebirth Now!</button>
+          <button id="rebirth-cancel-btn" class="small-btn">Not yet</button>
+        </div>
+      </div>
+    </div>
+
+    <nav id="zone-nav" class="zone-nav hidden">
+      <button type="button" class="zone-btn active" data-zone="eat">🏠 Home</button>
+      <button type="button" class="zone-btn" data-zone="sell">💵 Sell</button>
+      <button type="button" class="zone-btn" data-zone="shop">🛒 Shop</button>
+      <button type="button" class="zone-btn" data-zone="boss">⚔️ Boss</button>
+      <button type="button" class="zone-btn" data-zone="eggs">🥚 Eggs</button>
+      <button type="button" class="zone-btn" data-zone="pvp">👊 PVP</button>
+      <button type="button" class="zone-btn" data-zone="rebirth">♻️</button>
+    </nav>
+
+    <div id="action-bar" class="action-bar hidden">
+      <button id="eat-btn" class="action-btn eat-btn">🍔 EAT!</button>
+      <button id="auto-eat-btn" class="action-btn auto-btn hidden">⚡ Auto-Eat</button>
+      <button id="sell-btn" class="action-btn sell-btn hidden">💵 Sell All Fat</button>
+      <button id="rebirth-btn" class="action-btn rebirth-action-btn hidden">♻️ Rebirth!</button>
+    </div>
+  </div>
+
+  <div id="settings-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <button id="leave-game-btn" class="big-btn leave-btn">🏠 Leave Game</button>
+      <p class="settings-note">Go back to All Out</p>
+      <button id="close-settings-btn" class="small-btn">Close</button>
+    </div>
+  </div>
+
+  <script src="sprites.js"></script>
+    <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-easy.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+<script src="game.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: "fat-simulator",
+      getName: () => document.getElementById("name-input")?.value.trim() || undefined,
+    });
+  </script>
+</body>
+</html>

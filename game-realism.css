@@ -1,0 +1,110 @@
+/**
+ * Shared visual realism for Pro Games — depth, glass UI, ambient atmosphere.
+ */
+:root {
+  --gr-glass: rgba(255, 255, 255, 0.9);
+  --gr-glass-border: rgba(255, 255, 255, 0.6);
+  --gr-shadow-deep: 0 14px 48px rgba(0, 0, 0, 0.32);
+  --gr-shadow-soft: 0 5px 22px rgba(0, 0, 0, 0.16);
+}
+
+body.gr-enhanced {
+  -webkit-font-smoothing: antialiased;
+}
+
+#game-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+#game-wrap canvas {
+  display: block;
+  image-rendering: auto;
+  filter: contrast(1.04) saturate(1.06);
+}
+
+.gr-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse 88% 82% at 50% 44%, transparent 48%, rgba(0, 0, 0, 0.28) 100%),
+    linear-gradient(180deg, rgba(255, 245, 230, 0.06) 0%, transparent 24%, rgba(15, 22, 38, 0.1) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, transparent 8%, transparent 92%, rgba(0, 0, 0, 0.06) 100%);
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+#app.playing #game-wrap .gr-atmosphere {
+  opacity: 1;
+}
+
+#app.playing .overlay,
+#app.playing .battle-overlay,
+#app.playing .result-overlay,
+#app.playing .meeting-overlay,
+#app.playing .night-overlay,
+#app.playing #win-overlay,
+#app.playing #death-overlay,
+#app.playing #result-overlay {
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+#app.playing .overlay:not(.hidden)::before,
+#app.playing .battle-overlay:not(.hidden)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 10, 20, 0.48);
+  z-index: -1;
+}
+
+.battle-arena,
+.mo-panel,
+.garage-card,
+.hub-header,
+.game-tile {
+  box-shadow: var(--gr-shadow-soft);
+}
+
+#app.playing .big-btn,
+#app.playing .battle-btn,
+#app.playing .action-btn,
+#app.playing .action-float,
+#app.playing .steer-btn {
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.2),
+    0 8px 20px rgba(0, 0, 0, 0.14);
+}
+
+#app.playing .stat-pill,
+#app.playing .hud-top span {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.game-tile {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.game-tile:hover,
+.game-tile:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--gr-shadow-deep);
+}
+
+.hub-header {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hub-stats-bar span {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}

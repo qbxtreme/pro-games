@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Fishermon</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <div class="header-actions">
+        <button id="settings-btn" class="icon-btn" type="button" title="Settings">⚙️</button>
+        <button id="worlds-btn" class="icon-btn worlds-btn" type="button" title="Worlds"><span>Worlds</span></button>
+      </div>
+      <div class="hud-top">
+        <span id="level-display" class="stat-pill level-pill">🎣 Lv 1</span>
+        <span id="exp-display" class="stat-pill exp-pill">✨ 0 / 50</span>
+        <span id="coin-display" class="stat-pill coin-pill">🪙 25</span>
+        <span id="pearl-display" class="stat-pill pearl-pill">🔮 0</span>
+      </div>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="start-overlay" class="overlay">
+        <div class="panel monster-panel">
+          <h1>🎣 Fishermon</h1>
+          <p class="tagline lava-tag">🌋 LAVA UPDATE OUT NOW!</p>
+          <p class="tagline">Catch &amp; collect fish, level up, battle rivals, and build the ultimate roster!</p>
+          <ul class="feature-list">
+            <li>🏝️ Explore Fisher's Island — shops, docks, pond &amp; trees!</li>
+            <li>🎣 Buy gear at the Fish Shop · sell extras at the Sell Shop</li>
+            <li>🎣 Buy rods &amp; boats, evolve fish with rarity shards, and fuse new species.</li>
+            <li>⚔️ Battle divers, swimmers, and PvP rivals to prove you're the top fisher!</li>
+          </ul>
+          <p class="hero-line">Can you catch every fish and conquer the seas?</p>
+          <input id="name-input" type="text" maxlength="14" placeholder="Fisher name..." value="Angler">
+          <p class="pick-label">Pick your fisher blob:</p>
+          <div class="style-row">
+            <button type="button" class="style-pick selected" data-style="cute">🔴 Red</button>
+            <button type="button" class="style-pick" data-style="cool">🔵 Blue</button>
+            <button type="button" class="style-pick" data-style="wild">🩵 Teal</button>
+          </div>
+          <button id="play-btn" class="big-btn">Cast Off!</button>
+          <p class="hint">👥 Up to 8 players · Joystick to walk · Rare fish in deeper waters!</p>
+        </div>
+      </div>
+
+      <button id="fight-btn" class="action-float hidden" type="button">🎣 FISH!</button>
+      <button id="boss-btn" class="action-float boss-float hidden" type="button">👑 MYTHIC!</button>
+      <button id="sail-btn" class="action-float sail-float hidden" type="button">⛵ Sail</button>
+      <button id="shop-btn" class="action-float shop-float hidden" type="button">🎣 Shop</button>
+      <button id="go-back-world-btn" class="action-float go-back-world-float hidden" type="button">Go Back A World</button>
+      <button id="sell-shop-btn" class="action-float sell-float hidden" type="button">💰 Sell</button>
+      <button id="pickaxe-shop-btn" class="action-float pickaxe-float hidden" type="button">⛏️ Pickaxes</button>
+      <button id="feed-btn" class="action-float feed-float hidden" type="button">🍤 Feed</button>
+      <button id="breed-btn" class="action-float breed-float hidden" type="button">🧬 Fusion Tank</button>
+      <button id="ride-btn" class="action-float ride-float hidden" type="button">🚤 Boat</button>
+      <button id="pvp-btn" class="action-float pvp-float hidden" type="button">⚔️ PvP!</button>
+      <button id="cave-btn" class="action-float cave-float hidden" type="button">🌋 Enter Cave</button>
+      <div class="shop-stack">
+        <div id="leaderboard" class="leaderboard"></div>
+      </div>
+
+      <div class="joystick-wrap">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+      </div>
+
+      <div id="world-label" class="world-label">🏝️ Fisher's Island</div>
+      <div id="toast" class="toast hidden"></div>
+
+      <div id="catch-celebration" class="catch-celebration hidden" aria-live="polite">
+        <div class="catch-celebration-backdrop"></div>
+        <div class="catch-celebration-card">
+          <div class="catch-sparkle-ring" aria-hidden="true">
+            <span class="catch-sparkle">✨</span>
+            <span class="catch-sparkle">⭐</span>
+            <span class="catch-sparkle">✨</span>
+            <span class="catch-sparkle">💫</span>
+            <span class="catch-sparkle">✨</span>
+            <span class="catch-sparkle">⭐</span>
+            <span class="catch-sparkle">✨</span>
+            <span class="catch-sparkle">💫</span>
+          </div>
+          <div class="catch-fish-glow"></div>
+          <canvas id="catch-celebration-canvas" width="280" height="160"></canvas>
+          <p class="catch-cheer">Hooray! You caught it!</p>
+          <p id="catch-fish-name" class="catch-fish-name"></p>
+          <p class="catch-dismiss-hint">Tap to continue</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="travel-overlay" class="overlay hidden">
+      <div class="panel monster-panel travel-panel">
+        <h2>⛵ Set Sail</h2>
+        <p class="sub">Choose a destination from the dock</p>
+        <div id="travel-list" class="travel-list"></div>
+        <button id="travel-close-btn" class="small-btn" type="button">Stay Here</button>
+      </div>
+    </div>
+
+    <div id="battle-overlay" class="overlay hidden">
+      <div class="battle-arena">
+        <p id="battle-banner" class="battle-banner">Wild Guppy appeared!</p>
+        <div class="battle-hud">
+          <div class="fighter you-side">
+            <span id="battle-you-name">Angler</span>
+            <div class="hp-bar-wrap"><div id="battle-you-hp" class="hp-bar"></div></div>
+            <span id="battle-you-hp-text">100 / 100</span>
+          </div>
+          <span class="vs">VS</span>
+          <div class="fighter foe-side">
+            <span id="battle-foe-name">Guppy</span>
+            <div class="hp-bar-wrap"><div id="battle-foe-hp" class="hp-bar foe"></div></div>
+            <span id="battle-foe-hp-text">40 / 40</span>
+          </div>
+        </div>
+        <div id="boss-fish-switch" class="boss-fish-switch hidden">
+          <button id="boss-fish-prev" class="boss-fish-btn" type="button" title="Previous fish">◀</button>
+          <span id="boss-fish-label">🐟 Your fish</span>
+          <button id="boss-fish-next" class="boss-fish-btn" type="button" title="Next fish">▶</button>
+        </div>
+        <canvas id="battle-canvas" width="320" height="140"></canvas>
+        <p id="special-status" class="special-status hidden"></p>
+        <div class="battle-actions">
+          <button id="attack-btn" class="battle-btn attack-btn" type="button">🎣 Reel</button>
+          <button id="special-btn" class="battle-btn special-btn hidden" type="button">💦 Splash Attack</button>
+          <button id="flee-btn" class="battle-btn flee-btn" type="button">🏃 Run</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="upgrade-overlay" class="overlay hidden">
+      <div class="panel monster-panel upgrade-panel">
+        <h2>🎣 Fish Shop</h2>
+        <p class="sub">Buy rods, bait, gear, and coin boats on the island!</p>
+        <div id="upgrade-list" class="upgrade-list"></div>
+        <button id="upgrade-close-btn" class="small-btn" type="button">Back to Island</button>
+      </div>
+    </div>
+
+    <div id="sell-overlay" class="overlay hidden">
+      <div class="panel monster-panel upgrade-panel">
+        <h2>💰 Sell Shop</h2>
+        <p class="sub">Sell extra fish from your team for coins!</p>
+        <div id="sell-list" class="upgrade-list"></div>
+        <button id="sell-close-btn" class="small-btn" type="button">Back to Island</button>
+      </div>
+    </div>
+
+    <div id="fusion-overlay" class="overlay hidden">
+      <div class="panel monster-panel upgrade-panel fusion-panel">
+        <h2>🧬 Fusion Tank</h2>
+        <p class="sub">Fuse two fish — weak pairs upgrade, strong pairs create powerhouses!</p>
+        <p id="fusion-wallet" class="sub"></p>
+        <div class="fusion-slots">
+          <div id="fusion-slot-a" class="fusion-slot"></div>
+          <span class="fusion-plus">+</span>
+          <div id="fusion-slot-b" class="fusion-slot"></div>
+        </div>
+        <p id="fusion-preview" class="sub fusion-preview"></p>
+        <div id="fusion-list" class="upgrade-list"></div>
+        <button id="fusion-do-btn" class="big-btn" type="button">Fuse Fish!</button>
+        <button id="fusion-close-btn" class="small-btn" type="button">Back to Island</button>
+      </div>
+    </div>
+
+    <div id="pickaxe-overlay" class="overlay hidden">
+      <div class="panel monster-panel upgrade-panel">
+        <h2>⛏️ Depths Pickaxe Shop</h2>
+        <p class="sub">Buy mining pickaxes with coins inside the Depths cave.</p>
+        <p id="pickaxe-wallet" class="sub"></p>
+        <div id="pickaxe-list" class="upgrade-list"></div>
+        <button id="pickaxe-close-btn" class="small-btn" type="button">Back to Cave</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="settings-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <button id="leave-game-btn" class="big-btn leave-btn">🏠 Leave Game</button>
+      <button id="close-settings-btn" class="small-btn">Close</button>
+    </div>
+  </div>
+
+  <div id="worlds-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box worlds-box">
+      <h2>🌍 Worlds</h2>
+      <p class="worlds-sub">Unlocked islands you can sail to</p>
+      <div id="worlds-list" class="worlds-list"></div>
+      <button id="close-worlds-btn" class="small-btn">Close</button>
+    </div>
+  </div>
+
+  <script src="../../owner-boost.js"></script>
+  <script src="sprites.js"></script>
+    <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-easy.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+<script src="game.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: "fishermon",
+      getName: () => document.getElementById("name-input")?.value.trim() || undefined,
+    });
+  </script>
+</body>
+</html>

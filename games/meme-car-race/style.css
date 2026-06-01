@@ -1,0 +1,495 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app.playing #game-header {
+  background: linear-gradient(180deg, rgba(0,0,0,0.82), rgba(0,0,0,0.35), transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+#app.playing {
+  max-width: none;
+}
+
+#app.playing #game-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #030306;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.72);
+  z-index: 10;
+}
+
+.hud-top {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.money-pill, .mode-pill {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+.money-pill {
+  background: linear-gradient(135deg, rgba(255,202,40,0.95), rgba(255,152,0,0.9));
+  color: #3e2723;
+}
+
+.mode-pill {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  font-size: 1rem;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#app.playing #game-canvas {
+  filter: contrast(1.06) saturate(1.12) brightness(0.97);
+}
+
+#app.playing #game-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 50% 55%, transparent 40%, rgba(0,0,0,0.35) 100%);
+  z-index: 2;
+}
+
+#game-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.menu-panel-glow .meme-panel {
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 80px rgba(66,165,245,0.08);
+}
+
+.screen:not(.hidden) {
+  background: rgba(0,0,0,0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.pick-label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+
+.theme-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.theme-btn {
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 12px;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.theme-btn small {
+  display: block;
+  font-size: 0.62rem;
+  opacity: 0.85;
+  font-weight: normal;
+}
+
+.theme-btn.selected {
+  border-color: #ffeb3b;
+  background: rgba(255,235,59,0.15);
+  box-shadow: 0 0 16px rgba(255,235,59,0.25);
+}
+
+.world-badge {
+  font-size: 1.1rem;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 5;
+}
+
+.screen.hidden { display: none; }
+
+.meme-panel {
+  background: linear-gradient(165deg, rgba(26,35,126,0.94), rgba(49,27,146,0.92));
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 22px 18px;
+  text-align: center;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.meme-panel h1, .meme-panel h2 {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+
+.sub {
+  color: rgba(255,255,255,0.68);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.car-name {
+  color: #ffeb3b;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(255,235,59,0.3);
+}
+
+.big-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.2);
+  transition: transform 0.1s;
+}
+
+.big-btn:active { transform: scale(0.98) translateY(2px); }
+
+.solo-btn { background: linear-gradient(180deg, #42a5f5, #1565c0); }
+.pvp-btn { background: linear-gradient(180deg, #ef5350, #c62828); }
+.garage-btn { background: linear-gradient(180deg, #ab47bc, #6a1b9a); }
+.leave-btn { background: linear-gradient(180deg, #66bb6a, #2e7d32); }
+
+.small-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hint {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 8px;
+}
+
+.garage-panel {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.garage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.garage-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.38);
+  border: 1px solid rgba(255,255,255,0.12);
+  text-align: left;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.garage-card.owned { border-color: rgba(105,240,174,0.55); }
+.garage-card.selected { box-shadow: 0 0 0 2px #ffeb3b, 0 0 20px rgba(255,235,59,0.15); }
+
+.garage-emoji { font-size: 2rem; }
+
+.garage-info { flex: 1; }
+
+.garage-info h3 {
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.garage-info p {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.garage-action {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.garage-action.buy { background: #ff9800; color: #3e2723; }
+.garage-action.equip { background: #69f0ae; color: #1b5e20; }
+.garage-action.equipped { background: #546e7a; color: #fff; cursor: default; }
+
+.race-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.race-hud.hidden { display: none; }
+
+.race-stats {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.52);
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+}
+
+.fire-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.85);
+  background: linear-gradient(180deg, #ef5350, #b71c1c);
+  font-size: 1.6rem;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 8px 24px rgba(239,83,80,0.35);
+}
+
+.fire-btn.hidden { display: none; }
+
+.steer-pad {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.steer-pad.hidden { display: none; }
+
+.steer-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.85);
+  background: linear-gradient(180deg, #42a5f5, #1565c0);
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 8px 20px rgba(33,150,243,0.3);
+}
+
+.steer-btn:active { transform: scale(0.95); }
+
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 8;
+  pointer-events: none;
+}
+
+.countdown-overlay.hidden { display: none; }
+
+#countdown-text {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #ffeb3b;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.85), 0 0 50px rgba(255,235,59,0.45);
+  animation: countPop 0.5s ease-out;
+}
+
+@keyframes countPop {
+  from { transform: scale(1.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.tagline {
+  color: #ffeb3b;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 12px;
+}
+
+.feature-list {
+  list-style: none;
+  text-align: left;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.78);
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.28);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.feature-list li {
+  margin-bottom: 6px;
+}
+
+.feature-list li:last-child { margin-bottom: 0; }
+
+.money-earned {
+  font-size: 1.3rem;
+  color: #ffeb3b;
+  font-weight: 700;
+  margin: 12px 0;
+  text-shadow: 0 0 16px rgba(255,235,59,0.25);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.overlay.hidden { display: none; }
+
+.settings-box {
+  background: linear-gradient(165deg, rgba(38,50,56,0.95), rgba(55,71,79,0.92));
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+.settings-box h2 { margin-bottom: 12px; }
+
+.settings-note {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}

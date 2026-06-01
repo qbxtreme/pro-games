@@ -1,0 +1,22 @@
+{
+  "pack100": {
+    "tokens": 100,
+    "label": "100 Pro Tokens — Starter Pack",
+    "stripePriceId": "price_1TcXMILlMDtyDLHUEbY7QZQL"
+  },
+  "pack500": {
+    "tokens": 500,
+    "label": "500 Pro Tokens — Pro Pack",
+    "stripePriceId": "price_1TdCCjLlMDtyDLHURpxQB6TQ"
+  },
+  "pack1200": {
+    "tokens": 1200,
+    "label": "1200 Pro Tokens — Mega Pack",
+    "stripePriceId": "price_1TdCCjLlMDtyDLHU27zWhLUY"
+  },
+  "pack3000": {
+    "tokens": 3000,
+    "label": "3000 Pro Tokens — Ultra Pack",
+    "stripePriceId": "price_1TdCCjLlMDtyDLHUftc311ud"
+  }
+}

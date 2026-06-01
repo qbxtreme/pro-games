@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Math Olympiad</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+</head>
+<body>
+  <div id="app">
+    <header class="mo-header">
+      <a href="../../index.html" class="mo-back">← Pro Games</a>
+      <div class="mo-stats">
+        <span id="mo-score" class="mo-pill mo-pill-gold">Score 0%</span>
+        <span id="mo-round" class="mo-pill">Question 1 / 50</span>
+        <span id="mo-set" class="mo-pill mo-pill-set">Easy Round</span>
+        <span id="mo-lives" class="mo-pill mo-pill-lives" title="You never run out of lives">♾️ Infinite lives</span>
+      </div>
+    </header>
+
+    <section id="mo-start" class="mo-screen">
+      <p class="mo-olympics">🏅 🥇 🥈 🥉</p>
+      <h1 class="mo-title">Math Olympiad</h1>
+      <p class="mo-tagline">Train like a champion! Five rounds, fifty questions, one big test of what you know.</p>
+      <div class="mo-panel">
+        <ul class="mo-features">
+          <li>🥉 Questions 1–10: <strong>Easy</strong></li>
+          <li>🥈 Questions 11–20: <strong>Medium</strong></li>
+          <li>🥇 Questions 21–30: <strong>Hard</strong></li>
+          <li>🔥 Questions 31–40: <strong>Very Hard</strong></li>
+          <li>💥 Questions 41–50: <strong>Insane</strong></li>
+          <li>♾️ <strong>Infinite lives</strong> — never game over from a wrong answer</li>
+          <li>✅ Right = +2% &nbsp;·&nbsp; ❌ Wrong = −2%</li>
+          <li>🏆 Best score: <span data-best>0%</span></li>
+        </ul>
+        <button id="mo-start-btn" class="mo-btn mo-btn-primary" type="button">🏁 Start Olympiad</button>
+      </div>
+    </section>
+
+    <section id="mo-play" class="mo-screen hidden">
+      <div class="mo-panel">
+        <p class="mo-question-label">🏅 Solve this</p>
+        <p id="mo-question" class="mo-question">…</p>
+        <div id="mo-choices" class="mo-choices"></div>
+        <p id="mo-feedback" class="mo-feedback"></p>
+      </div>
+    </section>
+
+    <section id="mo-over" class="mo-screen hidden">
+      <p id="mo-final-medal" class="mo-medal-big">🏅</p>
+      <p id="mo-final-medal-label" class="mo-medal-label">Good try!</p>
+      <h1 class="mo-title">Olympiad Complete!</h1>
+      <div class="mo-panel">
+        <p class="mo-tagline">You finished all <strong>50 questions</strong> with a score of <strong id="mo-final-score">0</strong>%.</p>
+        <p class="mo-best">Best score: <span data-best>0%</span></p>
+        <button id="mo-retry-btn" class="mo-btn mo-btn-primary" type="button">Try Again</button>
+        <button id="mo-menu-btn" class="mo-btn mo-btn-secondary" type="button">Main Menu</button>
+        <a href="../../index.html" class="mo-btn mo-btn-secondary mo-link-btn">Back to Pro Games</a>
+      </div>
+    </section>
+  </div>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

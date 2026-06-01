@@ -1,0 +1,73 @@
+.settings-mp-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.settings-mp-cluster--fixed {
+  position: fixed;
+  z-index: 250;
+  pointer-events: auto;
+}
+
+.settings-mp-cluster--fixed .settings-btn {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+}
+
+.settings-mp-cluster--header-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  flex-direction: row-reverse;
+  gap: 8px;
+}
+
+.mp-online-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: bold;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.mp-online-badge.hidden {
+  display: none;
+}
+
+.mp-online-badge.mp-live {
+  background: rgba(46, 125, 50, 0.85);
+  border-color: rgba(129, 199, 132, 0.6);
+  box-shadow: 0 0 12px rgba(102, 187, 106, 0.4);
+}
+
+.mp-online-badge.mp-full {
+  background: rgba(198, 40, 40, 0.9);
+  border-color: rgba(239, 154, 154, 0.7);
+  box-shadow: 0 0 12px rgba(244, 67, 54, 0.45);
+}
+
+#app.playing .settings-mp-cluster--fixed {
+  pointer-events: auto;
+}
+
+@media (max-width: 380px) {
+  .mp-online-badge {
+    font-size: 0.6rem;
+    padding: 3px 7px;
+  }
+}
+
+.game-tile.single-player .game-tile-tag {
+  background: rgba(120, 144, 156, 0.35);
+}

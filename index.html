@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Pro Games</title>
+  <link rel="stylesheet" href="hub.css">
+  <link rel="stylesheet" href="game-realism.css">
+  <link rel="stylesheet" href="game-multiplayer.css">
+</head>
+<body>
+  <div id="hub-app">
+    <header class="hub-header">
+      <h1 class="hub-title">Pro Games</h1>
+    </header>
+
+    <section class="hub-stats-bar">
+      <span id="hub-games-played">🎮 Games played: 0</span>
+      <span id="hub-pro-level">⭐ Pro Level 1</span>
+      <span id="hub-token-balance">🪙 Pro Tokens: 0</span>
+    </section>
+
+    <nav class="hub-tabs" aria-label="Main sections">
+      <button type="button" id="tab-games" class="hub-tab active" data-tab="games">🎮 Games</button>
+      <button type="button" id="tab-settings" class="hub-tab" data-tab="settings">⚙️ Settings</button>
+    </nav>
+
+    <section id="panel-games" class="hub-panel">
+      <div id="game-grid" class="game-grid"></div>
+    </section>
+
+    <section id="panel-settings" class="hub-panel hidden">
+      <div class="settings-panel">
+        <div class="settings-balance-card">
+          <span class="settings-balance-icon">🪙</span>
+          <div>
+            <p class="settings-balance-label">Your Pro Tokens</p>
+            <p id="settings-token-count" class="settings-balance-value">0</p>
+          </div>
+        </div>
+
+        <h2 class="settings-heading">Buy Pro Tokens</h2>
+        <p class="settings-note">Use tokens in games for skins, boosts, and cool extras! Your Pro Tokens and game progress auto-save — even after you leave and come back (use the same name).</p>
+        <div id="token-shop" class="token-shop"></div>
+
+        <h2 class="settings-heading">Spend Tokens In Games</h2>
+        <ul class="token-uses">
+          <li>🐉 Dragon Plains — rare dragon eggs &amp; power-ups</li>
+          <li>🐍 Snake I.O. — snake skins &amp; start boost</li>
+          <li>🏎️ Meme Car Race — buy meme cars &amp; blast rivals in PVP</li>
+        </ul>
+        <p class="settings-parent-note">💳 Real money checkout — a parent must pay with card or Apple Pay.</p>
+
+        <h2 class="settings-heading">Pro Account</h2>
+        <p class="settings-note">Unlock every shop item, max upgrades, and top gear in all games on this device.</p>
+        <button type="button" id="max-gear-btn" class="hub-action-btn">⚡ Max Out All Gear</button>
+
+        <h2 class="settings-heading">Reset Progress</h2>
+        <p class="settings-note">Start fresh — clears levels, scores, coins, tokens, and saves in every game. Your nicknames and snake skin choice are kept.</p>
+        <button type="button" id="reset-progress-btn" class="hub-action-btn reset-progress-btn">🔄 Reset All Game Progress</button>
+      </div>
+    </section>
+
+    <footer class="hub-footer">
+      <p><strong>Pro Games</strong> · Made by Casey</p>
+      <p class="hub-footer-note">All games run on Pro Games — stay in the hub, no external sites.</p>
+    </footer>
+  </div>
+
+  <div id="hub-toast" class="hub-toast hidden"></div>
+
+  <div class="wheel-open-wrap">
+    <button type="button" id="wheel-open-btn" class="wheel-open-btn">🎡 Spin the wheel</button>
+  </div>
+
+  <div class="make-game-wrap">
+    <button type="button" id="make-game-btn" class="make-game-btn" title="Make a game">🛠️ Make a game</button>
+  </div>
+
+  <div class="hub-bottom-dock">
+    <a href="games/math-olympiad/" class="math-olympiad-btn">Math Olympiad</a>
+  </div>
+
+  <div id="make-game-overlay" class="hub-overlay make-game-overlay hidden">
+    <div class="make-game-modal">
+      <h2>Make a game</h2>
+      <div class="make-game-cost-box">
+        <span class="make-game-cost-label">Cost</span>
+        <span class="make-game-cost-amount">🪙 200 Pro Tokens</span>
+      </div>
+      <p id="make-game-balance" class="make-game-balance">Your balance: 🪙 0</p>
+      <p class="make-game-desc">Describe your game idea. We'll get the message on the computer!</p>
+      <label class="make-game-label" for="make-game-from">Your name</label>
+      <input type="text" id="make-game-from" class="make-game-input" maxlength="16" placeholder="Casey" autocomplete="nickname">
+      <label class="make-game-label" for="make-game-text">Your game idea</label>
+      <textarea id="make-game-text" class="make-game-textarea" maxlength="500" rows="4" placeholder="Example: A game where you fly dragons and race friends!"></textarea>
+      <button type="button" id="make-game-send-btn" class="hub-action-btn make-game-send-btn">Pay 200 🪙 &amp; Send</button>
+      <button type="button" id="make-game-cancel-btn" class="hub-action-btn make-game-cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="buy-overlay" class="hub-overlay hidden">
+    <div class="buy-modal">
+      <h2 id="buy-modal-title">Buy Pro Tokens</h2>
+      <p id="buy-modal-desc" class="buy-modal-desc"></p>
+      <p class="buy-modal-price" id="buy-modal-price"></p>
+      <p class="buy-modal-parent">A parent must complete secure checkout. You will not get tokens without paying.</p>
+      <button type="button" id="buy-pay-btn" class="hub-action-btn buy-pay-btn">Pay Now</button>
+      <button type="button" id="buy-cancel-btn" class="hub-action-btn buy-cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="daily-overlay" class="hub-overlay daily-overlay hidden">
+    <div class="daily-modal">
+      <h2>🎁 Daily Pro Tokens!</h2>
+      <p class="daily-modal-desc">Welcome back! Pick one reward for today:</p>
+      <button type="button" id="daily-free-btn" class="hub-action-btn daily-free-btn">Claim 5 Free Tokens</button>
+      <button type="button" id="daily-ad-btn" class="hub-action-btn daily-ad-btn">📺 Watch Ad — Get 15 Tokens!</button>
+      <p class="daily-modal-note">Watch the ad <strong>every day</strong> to get 15 tokens instead of 5.</p>
+    </div>
+  </div>
+
+  <div id="ad-overlay" class="hub-overlay ad-overlay hidden">
+    <div class="ad-modal">
+      <p class="ad-title">📺 Ad playing...</p>
+      <div class="ad-progress-track">
+        <div id="ad-progress-bar" class="ad-progress-bar"></div>
+      </div>
+      <p id="ad-countdown" class="ad-countdown">5</p>
+      <p class="ad-hint">Wait for the ad to finish...</p>
+    </div>
+  </div>
+
+  <div id="wheel-overlay" class="hub-overlay wheel-overlay hidden">
+    <div class="wheel-modal">
+      <h2>🎡 Prize Wheel</h2>
+      <p id="wheel-spins-left" class="wheel-spins-left">Spins left: 3 / 3</p>
+      <div class="wheel-stage">
+        <div class="wheel-pointer">▼</div>
+        <canvas id="wheel-canvas" width="280" height="280"></canvas>
+      </div>
+      <p id="wheel-result" class="wheel-result">Tap spin to try your luck!</p>
+      <button type="button" id="wheel-spin-btn" class="hub-action-btn wheel-spin-btn">Spin!</button>
+      <button type="button" id="wheel-close-btn" class="hub-action-btn wheel-close-btn">Close</button>
+    </div>
+  </div>
+
+  <script src="payments-config.js"></script>
+  <script src="owner-boost.js"></script>
+  <script src="all-out-games.js"></script>
+  <script src="all-out-template-map.js"></script>
+  <script src="all-out-engine.js"></script>
+  <script src="pro-max-gear.js"></script>
+  <script src="reset-progress.js"></script>
+  <script src="pro-save.js"></script>
+  <script src="hub.js"></script>
+</body>
+</html>

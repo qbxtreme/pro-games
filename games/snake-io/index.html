@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Snake.io</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="snake-main-hub" class="slither-hub">
+    <canvas id="hub-bg-canvas" class="hub-bg-canvas" aria-hidden="true"></canvas>
+
+    <div id="hub-scoreboard" class="mode-scoreboard" aria-label="Your scores">
+      <div id="hub-score-pebbles-row" class="mode-score-row mode-score-pebbles-row">
+        <span class="mode-score-label">Pebbles</span>
+        <span id="hub-score-pebbles" class="mode-score-value">0</span>
+      </div>
+      <div class="mode-score-row">
+        <span class="mode-score-label">Your score</span>
+        <span id="hub-score-your" class="mode-score-value">0</span>
+      </div>
+      <div id="hub-score-unranked-row" class="mode-score-row" data-mode="unranked">
+        <span class="mode-score-label">Highest unranked</span>
+        <span id="hub-score-unranked" class="mode-score-value">0</span>
+      </div>
+      <div id="hub-score-ranked-row" class="mode-score-row" data-mode="ranked">
+        <span class="mode-score-label">Highest ranked</span>
+        <span id="hub-score-ranked" class="mode-score-value">0</span>
+      </div>
+      <button type="button" id="reset-unranked-btn" class="mode-score-reset" title="Clear highest unranked score">Reset unranked best</button>
+    </div>
+
+    <main class="slither-center">
+      <h1 class="slither-logo" aria-label="Snake.io">
+        <span class="slither-word">Snake</span><span class="slither-dot">.</span><span class="slither-io">io</span>
+      </h1>
+
+      <div class="slither-nick-wrap">
+        <input id="name-input" type="text" maxlength="24" placeholder="Nickname" autocomplete="nickname">
+      </div>
+
+      <p class="slither-hub-stats" aria-label="Your stats">
+        <span id="hub-games-display">🎮 Runs: 0</span>
+        <span class="slither-hub-stats-sep">·</span>
+        <span id="hub-kills-display">💀 Kills: 0</span>
+      </p>
+
+      <div class="skin-preview-frame">
+        <canvas id="skin-preview-canvas" class="skin-preview-canvas" width="260" height="92" aria-hidden="true"></canvas>
+      </div>
+    </main>
+
+    <aside class="slither-hub-actions" aria-label="Play options">
+      <button id="start-big-btn" class="slither-hub-action-btn slither-start-big-btn hidden" type="button">
+        <span id="start-big-cost" class="start-big-cost">100 🪙</span>
+        Start Big
+      </button>
+      <button id="play-btn" class="slither-hub-action-btn slither-play-btn" type="button">Play</button>
+      <button id="rank-mode-btn" class="slither-hub-action-btn slither-rank-btn" type="button">Unranked</button>
+      <p id="hub-toast" class="hub-toast hidden" aria-live="polite"></p>
+    </aside>
+
+    <div class="slither-bottom-actions">
+      <a href="../../index.html" id="main-hub-back-btn" class="slither-main-hub-btn">Back to Main Hub</a>
+      <button id="snake-skins-btn" class="slither-snake-skins-btn" type="button">Snake Skins</button>
+    </div>
+
+    <footer class="slither-footer">
+      <a href="#" class="slither-footer-link" id="privacy-link">privacy</a>
+      <span class="slither-footer-sep">-</span>
+      <a href="#" class="slither-footer-link" id="terms-link">terms of service</a>
+      <span class="slither-footer-sep">-</span>
+      <a href="#" class="slither-footer-link" id="contact-link">contact</a>
+    </footer>
+
+    <a href="../../index.html" id="pro-hub-link-btn" class="slither-pro-link" title="Back to Pro Games">Pro Games</a>
+  </div>
+
+  <!-- Snake Skins picker -->
+  <div id="snake-skins-overlay" class="slither-overlay hidden">
+    <div class="snake-skins-panel">
+      <header class="snake-skins-header">
+        <h2>Snake Skins</h2>
+        <button type="button" id="snake-skins-close-btn" class="snake-skins-close" aria-label="Close">✕</button>
+      </header>
+      <p id="snake-skins-coins" class="snake-skins-coins">Your pebbles: 0 🪙</p>
+      <p class="snake-skins-intro">First 6 skins are free. Collect pebbles in <strong>ranked</strong> games to unlock the rest — tap a skin to buy and equip it.</p>
+      <p id="snake-skins-toast" class="snake-skins-toast hidden"></p>
+      <div id="snake-skins-grid" class="snake-skins-scroll"></div>
+    </div>
+  </div>
+
+  <!-- Skin picker (Change skin) -->
+  <div id="skin-overlay" class="slither-overlay hidden">
+    <div class="slither-modal slither-skin-modal">
+      <h2>Change Skin</h2>
+      <div class="skin-carousel">
+        <button type="button" id="skin-prev-btn" class="skin-nav-btn" aria-label="Previous skin">‹</button>
+        <div class="skin-swatches" id="skin-swatches"></div>
+        <button type="button" id="skin-next-btn" class="skin-nav-btn" aria-label="Next skin">›</button>
+      </div>
+      <button type="button" id="skin-close-btn" class="slither-modal-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Server picker -->
+  <div id="server-overlay" class="slither-overlay hidden">
+    <div class="slither-modal">
+      <h2>Choose Server</h2>
+      <ul class="server-list">
+        <li><button type="button" class="server-option selected" data-server="na">North America</button></li>
+        <li><button type="button" class="server-option" data-server="eu">Europe</button></li>
+        <li><button type="button" class="server-option" data-server="asia">Asia</button></li>
+      </ul>
+      <button type="button" id="server-close-btn" class="slither-modal-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Enter code -->
+  <div id="code-overlay" class="slither-overlay hidden">
+    <div class="slither-modal">
+      <h2>Enter Code</h2>
+      <input id="party-code-input" type="text" maxlength="12" placeholder="Party code" class="slither-modal-input">
+      <button type="button" id="code-join-btn" class="slither-modal-action">Join</button>
+      <button type="button" id="code-close-btn" class="slither-modal-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Build skin / cosmetic placeholders -->
+  <div id="build-overlay" class="slither-overlay hidden">
+    <div class="slither-modal">
+      <h2>Build Skin</h2>
+      <p class="slither-modal-note">Pick colors below to build your snake.</p>
+      <div class="color-row" id="build-color-row"></div>
+      <button type="button" id="build-close-btn" class="slither-modal-close">Close</button>
+    </div>
+  </div>
+
+  <div id="cosmetic-overlay" class="slither-overlay hidden">
+    <div class="slither-modal">
+      <h2>Select Cosmetic</h2>
+      <div class="cosmetic-grid">
+        <button type="button" class="cosmetic-option selected" data-cosmetic="none">None</button>
+        <button type="button" class="cosmetic-option" data-cosmetic="glasses">Glasses</button>
+        <button type="button" class="cosmetic-option" data-cosmetic="crown">Crown</button>
+        <button type="button" class="cosmetic-option" data-cosmetic="bow">Bow</button>
+      </div>
+      <button type="button" id="cosmetic-close-btn" class="slither-modal-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Arena -->
+  <div id="app" class="arena-hidden">
+    <header id="game-header">
+      <button id="settings-btn" class="settings-btn" type="button" title="Settings">⚙️</button>
+    </header>
+
+    <div id="top-scoreboard" class="mode-scoreboard hidden" aria-label="Your scores">
+      <div id="top-score-pebbles-row" class="mode-score-row mode-score-pebbles-row">
+        <span class="mode-score-label">Pebbles</span>
+        <span id="top-score-pebbles" class="mode-score-value">0</span>
+      </div>
+      <div class="mode-score-row">
+        <span class="mode-score-label">Your score</span>
+        <span id="top-score-your" class="mode-score-value">0</span>
+      </div>
+      <div id="top-score-unranked-row" class="mode-score-row" data-mode="unranked">
+        <span class="mode-score-label">Highest unranked</span>
+        <span id="top-score-unranked" class="mode-score-value">0</span>
+      </div>
+      <div id="top-score-ranked-row" class="mode-score-row" data-mode="ranked">
+        <span class="mode-score-label">Highest ranked</span>
+        <span id="top-score-ranked" class="mode-score-value">0</span>
+      </div>
+    </div>
+
+    <div id="slither-hud" class="slither-hud hidden">
+      <div id="score-display" class="slither-hud-length"></div>
+      <div id="rank-display" class="slither-hud-rank"></div>
+    </div>
+
+    <div id="snake-joystick-wrap" class="joystick-wrap hidden" aria-label="Move joystick">
+      <div id="joystick-base" class="joystick-base">
+        <div id="joystick-knob" class="joystick-knob"></div>
+      </div>
+    </div>
+
+    <button id="snake-boost-btn" class="snake-boost-btn hidden" type="button" aria-label="Boost">⚡ Boost</button>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="leaderboard" class="leaderboard hidden"></div>
+
+      <div id="death-overlay" class="overlay hidden">
+        <div class="panel slither-panel">
+          <h2>Your snake died!</h2>
+          <p id="death-msg">Your length: 0</p>
+          <p id="death-ranked-note" class="death-ranked-note hidden">Ranked games have no respawns.</p>
+          <button id="share-score-btn" class="share-btn" type="button">📤 Share Score</button>
+          <button id="respawn-btn" class="big-btn hidden" type="button">Respawn</button>
+          <button id="next-btn" class="hub-btn" type="button">Back to Menu</button>
+          <p id="share-toast" class="share-toast hidden">Score copied!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="arena-settings-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <label class="settings-toggle">
+        <input id="hq-toggle" type="checkbox" checked>
+        High quality graphics
+      </label>
+      <button id="hub-back-btn" class="big-btn leave-btn" type="button">Back to Menu</button>
+      <button id="leave-game-btn" class="small-btn" type="button">Leave to Pro Games</button>
+      <button id="close-settings-btn" class="small-btn" type="button">Close</button>
+    </div>
+  </div>
+
+  <script>
+    window.HUB_CONFIG = { snakeIoHub: true };
+  </script>
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-easy.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+  <script src="snake-skins.js"></script>
+  <script src="slither-score.js"></script>
+  <script src="game.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: "snake-io",
+      getName: () => document.getElementById("name-input")?.value.trim() || undefined,
+    });
+  </script>
+</body>
+</html>

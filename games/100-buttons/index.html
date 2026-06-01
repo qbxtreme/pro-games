@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Game</title>
+  <link rel="stylesheet" href="../_templates/buttons/style.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+<link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <button id="settings-btn" class="icon-btn" type="button" title="Settings">⚙️</button>
+      <div class="hud-top"><span id="tier-display" class="stat-pill level-pill">🏔️ Tier 1</span><span id="chaos-display" class="stat-pill coin-pill">💥 0%</span><span id="pressed-display" class="stat-pill exp-pill">🔘 0/100</span><span id="best-display" class="stat-pill coin-pill">🏆 T0</span></div>
+    </header>
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="start-overlay" class="overlay">
+        <div class="panel monster-panel">
+          <h1 id="game-title">Game</h1>
+          <p id="game-tagline" class="tagline"></p>
+          <ul class="feature-list" id="feature-list"></ul>
+          <input id="name-input" type="text" maxlength="14" placeholder="Your name..." value="Player">
+          <p class="pick-label">Pick your blob:</p>
+          <div class="style-row">
+            <button type="button" class="style-pick selected" data-style="cute">🔴 Red</button>
+            <button type="button" class="style-pick" data-style="cool">🔵 Blue</button>
+            <button type="button" class="style-pick" data-style="wild">🩵 Teal</button>
+          </div>
+          <button id="play-btn" class="big-btn">Play Now!</button>
+          <p class="hint">👥 Multiplayer · All Out style!</p>
+        </div>
+      </div>
+      <div id="button-grid" class="button-grid"></div>
+      
+      <div id="world-label" class="world-label"></div>
+      <div id="toast" class="toast hidden"></div>
+    </div>
+  </div>
+  <div id="settings-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <button id="leave-game-btn" class="big-btn leave-btn">🏠 Leave Game</button>
+      <button id="close-settings-btn" class="small-btn">Close</button>
+    </div>
+  </div>
+  <script src="../_templates/buttons/config-defaults.js"></script>
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const C = window.GAME_CONFIG;
+      if (!C?.branding) return;
+      document.title = C.branding.title || document.title;
+      const t = document.getElementById("game-title");
+      const g = document.getElementById("game-tagline");
+      const p = document.getElementById("play-btn");
+      if (t && C.branding.title) t.textContent = C.branding.title;
+      if (g && C.branding.description) g.textContent = C.branding.description;
+      if (p && C.branding.playBtn) p.textContent = C.branding.playBtn;
+      if (C.features && document.getElementById("feature-list")) {
+        document.getElementById("feature-list").innerHTML = C.features.map(function (f) { return "<li>" + f + "</li>"; }).join("");
+      }
+    })();
+  </script>
+  <script src="../_templates/shared/sprites.js"></script>  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-easy.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+<script src="../_templates/buttons/engine.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: window.GAME_CONFIG?.chatRoom || "game",
+      getName: function () { var el = document.getElementById("name-input"); return el && el.value.trim() || undefined; },
+    });
+  </script>
+</body>
+</html>

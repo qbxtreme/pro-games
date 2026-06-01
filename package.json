@@ -1,0 +1,12 @@
+{
+  "name": "become-a-pro",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "setup-payments": "node setup-payment-links.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "stripe": "^17.7.0"
+  }
+}

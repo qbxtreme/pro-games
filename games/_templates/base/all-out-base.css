@@ -1,0 +1,219 @@
+/**
+ * All Out layout + touch-friendly controls — loaded on every Become a Pro game.
+ * Matches All Out formation: top HUD, bottom-left joystick, right action dock.
+ */
+:root {
+  --ao-joy-size: 120px;
+  --ao-joy-knob: 52px;
+  --ao-touch-min: 48px;
+  --ao-action-gap: 10px;
+  --ao-hud-bg: rgba(255, 255, 255, 0.92);
+  --ao-sticker-shadow: 4px 5px 0 #111;
+}
+
+html, body {
+  overscroll-behavior: none;
+}
+
+#app {
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+#app.playing {
+  max-width: none !important;
+}
+
+#app.playing #game-header {
+  padding: 10px 12px;
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  background: var(--ao-hud-bg);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.hud-top {
+  gap: 8px !important;
+}
+
+.stat-pill {
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn {
+  width: var(--ao-touch-min) !important;
+  height: var(--ao-touch-min) !important;
+  font-size: 1.15rem !important;
+  box-shadow: var(--ao-sticker-shadow);
+  flex-shrink: 0;
+}
+
+#game-wrap {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* All Out joystick — bottom-left */
+.joystick-wrap {
+  left: max(16px, env(safe-area-inset-left, 0px)) !important;
+  bottom: max(20px, env(safe-area-inset-bottom, 0px)) !important;
+  z-index: 14 !important;
+}
+
+.joystick-base {
+  width: var(--ao-joy-size) !important;
+  height: var(--ao-joy-size) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 4px solid #111 !important;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2), inset 0 0 24px rgba(255, 255, 255, 0.35) !important;
+}
+
+.joystick-knob {
+  width: var(--ao-joy-knob) !important;
+  height: var(--ao-joy-knob) !important;
+  border: 3px solid #111 !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Shooter dual sticks */
+.move-stick .joystick-base,
+.aim-stick .joystick-base {
+  width: 110px !important;
+  height: 110px !important;
+}
+
+.move-stick .joystick-knob,
+.aim-stick .joystick-knob {
+  width: 48px !important;
+  height: 48px !important;
+}
+
+/* All Out action dock — right side, bigger taps */
+.action-float,
+.action-btn,
+.battle-btn {
+  min-height: var(--ao-touch-min) !important;
+  min-width: var(--ao-touch-min) !important;
+  padding: 14px 18px !important;
+  font-size: 0.95rem !important;
+  box-shadow: var(--ao-sticker-shadow) !important;
+  touch-action: manipulation;
+}
+
+.action-float {
+  right: max(14px, env(safe-area-inset-right, 0px)) !important;
+}
+
+#app.playing .action-float:not(.hidden) {
+  animation: ao-pop-in 0.2s ease-out;
+}
+
+@keyframes ao-pop-in {
+  from { transform: scale(0.85); opacity: 0.6; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Start screen — All Out lobby formation */
+.panel,
+.monster-panel,
+.start-panel {
+  max-width: 380px !important;
+  border-radius: 22px !important;
+  box-shadow: 8px 10px 0 #111 !important;
+}
+
+.style-pick {
+  min-height: var(--ao-touch-min) !important;
+  padding: 10px 16px !important;
+  font-size: 0.88rem !important;
+}
+
+.big-btn {
+  min-height: 52px !important;
+  font-size: 1.15rem !important;
+}
+
+#name-input {
+  min-height: var(--ao-touch-min) !important;
+  font-size: 1.05rem !important;
+}
+
+.feature-list {
+  font-size: 0.88rem !important;
+  line-height: 1.55 !important;
+}
+
+.hint {
+  font-size: 0.78rem !important;
+}
+
+/* 100 Buttons grid — readable cells */
+.button-grid {
+  grid-template-columns: repeat(8, 1fr) !important;
+  gap: 6px !important;
+  padding: 8px !important;
+}
+
+.button-grid button,
+.button-cell {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  font-size: 0.85rem !important;
+}
+
+.zone-nav .zone-btn {
+  min-height: 40px !important;
+  min-width: 80px !important;
+  font-size: 0.78rem !important;
+}
+
+#toast {
+  bottom: calc(var(--ao-joy-size) + 28px) !important;
+  font-size: 0.92rem !important;
+  padding: 12px 18px !important;
+  border-radius: 14px !important;
+}
+
+.shop-stack {
+  top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  right: max(10px, env(safe-area-inset-right, 0px)) !important;
+}
+
+/* Controls hint bar */
+.ao-controls-hint {
+  position: absolute;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 13;
+  background: rgba(17, 17, 17, 0.88);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  text-align: center;
+  max-width: min(92%, 420px);
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  transition: opacity 0.4s ease;
+}
+
+.ao-controls-hint.hidden {
+  opacity: 0;
+}
+
+#app:not(.playing) .ao-controls-hint {
+  display: none;
+}
+
+/* World hotbar (murder / social games) */
+.world-hotbar {
+  font-size: 0.88rem !important;
+}
+
+.phase-banner {
+  font-size: 1rem !important;
+  padding: 10px 20px !important;
+}

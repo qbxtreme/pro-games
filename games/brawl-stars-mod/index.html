@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Brawl Stars Mod</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <button id="settings-btn" class="icon-btn" type="button" title="Settings">⚙️</button>
+      <div class="hud-top">
+        <span id="alive-display" class="stat-pill alive-pill">👊 6 left</span>
+        <span id="timer-display" class="stat-pill timer-pill hidden">⏱️ 60s</span>
+        <span id="hp-display" class="stat-pill hp-pill">❤️ 100%</span>
+        <span id="online-display" class="stat-pill online-pill">👥 1</span>
+      </div>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="main-menu" class="main-menu">
+        <div class="menu-sky"></div>
+
+        <div class="menu-layout">
+          <aside id="menu-hero-panel" class="menu-hero-panel">
+            <canvas id="menu-brawler-canvas" aria-hidden="true"></canvas>
+            <div class="menu-hero-caption">
+              <span id="menu-hero-emoji" class="menu-hero-emoji">🐚</span>
+              <div class="menu-hero-text">
+                <strong id="menu-hero-name" class="menu-hero-name">Shelly</strong>
+                <small id="menu-hero-rarity" class="menu-hero-rarity">Common</small>
+              </div>
+            </div>
+          </aside>
+
+          <div class="menu-shell">
+          <header class="menu-top-bar">
+            <a href="../../index.html" class="menu-back-link" title="Pro Games hub">← Pro Games</a>
+            <div class="menu-currency-row">
+              <span id="menu-energy-blasts" class="menu-currency-pill menu-energy-blasts" title="Energy Blasts">
+                <span class="menu-energy-icon" aria-hidden="true">⚡</span>
+                <span id="menu-energy-blasts-count">0</span>
+              </span>
+              <span id="menu-coins" class="menu-currency-pill menu-coins" title="Coins">
+                <span aria-hidden="true">🪙</span>
+                <span id="menu-coins-count">0</span>
+              </span>
+              <span id="menu-bling" class="menu-currency-pill menu-bling" title="Bling">
+                <span class="menu-bling-star" aria-hidden="true">★</span>
+                <span id="menu-bling-count">0</span>
+              </span>
+            </div>
+            <span class="menu-mod-badge">MOD v2</span>
+          </header>
+
+          <div class="menu-pass-row">
+            <button id="brawl-pass-btn" class="hub-pass-btn" type="button">
+              <span class="hub-pass-icon">🎫</span>
+              <span class="hub-pass-text">
+                <strong>Brawl Pass</strong>
+                <small class="hub-pass-hint">Tier 1 · 0 / 300</small>
+              </span>
+            </button>
+            <button id="hub-quests-top-btn" class="hub-quests-top-btn" type="button">
+              <span class="hub-pass-icon">📋</span>
+              <span class="hub-pass-text">
+                <strong>Quests</strong>
+                <small class="hub-quests-hint">Win 1 Showdown</small>
+              </span>
+            </button>
+            <button id="hub-shop-btn" class="hub-shop-top-btn" type="button">🛒 Shop</button>
+          </div>
+
+          <div class="player-level-panel">
+            <div class="player-level-header">
+              <p class="player-level-title">Level <span id="player-level-num">1</span> <span class="player-level-max">/ 100</span></p>
+              <button id="level-up-btn" class="level-up-btn hidden" type="button">Level Up!</button>
+            </div>
+            <p id="player-level-cost" class="player-level-cost">Level 2: 20 ★ Bling · 20 ⚡ Energy</p>
+            <div class="player-level-bars">
+              <div class="player-level-bar-row">
+                <span id="player-level-bling-label" class="player-level-bar-label">★ 0 / 20</span>
+                <div class="player-level-bar player-level-bling-bar"><div id="player-level-bling-fill" class="player-level-bar-fill"></div></div>
+              </div>
+              <div class="player-level-bar-row">
+                <span id="player-level-energy-label" class="player-level-bar-label">⚡ 0 / 20</span>
+                <div class="player-level-bar player-level-energy-bar"><div id="player-level-energy-fill" class="player-level-bar-fill"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="menu-center">
+            <div class="menu-logo-wrap">
+              <div class="menu-star-ring">⭐</div>
+              <h1 class="menu-logo">
+                <span class="menu-logo-main">BRAWL</span>
+                <span class="menu-logo-sub">STARS MOD</span>
+              </h1>
+              <p class="menu-tagline">☠️ Showdown · Modded · Grass Arena · Poison Cloud</p>
+            </div>
+
+            <div class="menu-section">
+              <p class="menu-section-label">Game Mode</p>
+              <button type="button" id="selected-game-mode-btn" class="selected-game-mode-btn">
+                <span id="selected-game-mode-emoji" class="selected-game-mode-emoji">☠️</span>
+                <span class="selected-game-mode-info">
+                  <strong id="selected-game-mode-label">Showdown</strong>
+                  <small id="selected-game-mode-desc">Solo — be the last brawler standing.</small>
+                </span>
+                <span class="selected-game-mode-change">Change ›</span>
+              </button>
+            </div>
+
+            <div class="menu-section">
+              <p class="menu-section-label">Choose Brawler</p>
+              <div class="char-rank-panel">
+                <p id="char-rank-label" class="char-rank-label rank-tier-0">Wood ★☆☆☆☆</p>
+                <div class="char-xp-bar"><div id="char-xp-fill" class="char-xp-fill"></div></div>
+                <small id="char-xp-label" class="char-xp-label">0 / 80 XP to next ★</small>
+              </div>
+              <div id="brawler-roster-scroll" class="brawler-roster-scroll"></div>
+            </div>
+
+            <div class="menu-section menu-name-section">
+              <input id="name-input" type="text" maxlength="14" placeholder="Enter name..." value="Trainer" autocomplete="nickname">
+            </div>
+          </div>
+
+          <footer class="menu-bottom-dock">
+            <div class="menu-bottom-left">
+              <button id="hub-quests-btn" class="hub-dock-btn hub-dock-quests" type="button">
+                <span class="hub-dock-icon">📋</span>
+                <span>Quests</span>
+              </button>
+              <button id="hub-bs-quests-btn" class="hub-dock-btn hub-dock-bs-quests" type="button">
+                <span class="hub-dock-icon">⭐</span>
+                <span>Brawl Stars Quests</span>
+              </button>
+            </div>
+            <div class="menu-bottom-center">
+              <button id="play-world-btn" class="hub-play-world-btn" type="button">Play World</button>
+            </div>
+            <div class="menu-bottom-right">
+              <button id="play-btn" class="hub-play-btn" type="button">Play</button>
+              <button id="hub-games-btn" class="hub-games-btn" type="button">Games</button>
+            </div>
+          </footer>
+          </div>
+        </div>
+      </div>
+
+      <div id="hub-panel-overlay" class="hub-panel-overlay hidden">
+        <div class="hub-panel-card">
+          <h2 id="hub-panel-title" class="hub-panel-title">Panel</h2>
+          <div id="hub-panel-body" class="hub-panel-body"></div>
+          <button id="hub-panel-close" class="hub-panel-close-btn" type="button">Close</button>
+        </div>
+      </div>
+
+      <div id="brawl-pass-overlay" class="brawl-pass-overlay hidden">
+        <div class="brawl-pass-screen">
+          <header class="brawl-pass-header">
+            <div class="brawl-pass-header-text">
+              <h2 class="brawl-pass-title">Brawl Pass</h2>
+              <p class="brawl-pass-season">Season 1 · 200 Tiers · Tier 50 = Sirius · Tier 100 = ?????.exe · Tier 200 = Coco 🥥</p>
+            </div>
+            <button id="brawl-pass-close" class="brawl-pass-close-btn" type="button">Close</button>
+          </header>
+          <div class="brawl-pass-progress-wrap">
+            <div id="brawl-pass-progress-label" class="brawl-pass-progress-label">Working on Tier 1 · 0 / 300 XP</div>
+            <div class="brawl-pass-progress-bar">
+              <div id="brawl-pass-progress-fill" class="brawl-pass-progress-fill"></div>
+            </div>
+          </div>
+          <div id="brawl-pass-scroll" class="brawl-pass-scroll"></div>
+        </div>
+      </div>
+
+      <div id="win-overlay" class="overlay hidden">
+        <div class="panel brawl-panel">
+          <h2 id="win-title">Victory!</h2>
+          <p id="win-msg" class="tagline"></p>
+          <button id="again-btn" class="big-btn">Play Again</button>
+          <button id="menu-btn" class="small-btn">Main Menu</button>
+        </div>
+      </div>
+
+      <button id="super-btn" class="super-btn hidden" type="button">⚡ SUPER</button>
+
+      <div class="stick-wrap move-stick-wrap">
+        <div id="move-base" class="stick-base"><div id="move-knob" class="stick-knob"></div></div>
+      </div>
+      <button id="attack-btn" class="attack-btn hidden" type="button">🔫</button>
+      <button id="melee-btn" class="melee-btn hidden" type="button" title="Melee (A)">⚔️</button>
+
+      <button id="world-back-btn" class="world-back-btn hidden" type="button">← Menu</button>
+      <div id="world-hud" class="world-hud hidden">
+        <span id="world-hud-label">Explore · Find the Merge Machine</span>
+      </div>
+      <div id="world-merge-actions" class="world-merge-actions hidden">
+        <button id="world-merge-open-btn" class="world-merge-open-btn" type="button">⚗️ Merge</button>
+      </div>
+
+      <div id="world-merge-overlay" class="world-merge-overlay hidden">
+        <div class="world-merge-panel">
+          <header class="world-merge-header">
+            <h2>⚗️ Merge Machine</h2>
+            <p class="world-merge-subtitle">Tap a brawler to merge into</p>
+          </header>
+          <div id="world-merge-list" class="world-merge-list"></div>
+          <button id="world-merge-close-btn" class="world-merge-close-btn" type="button">Close</button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+  </div>
+
+  <div id="settings-overlay" class="overlay fixed-overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <button id="leave-game-btn" class="big-btn leave-btn">🏠 Leave Game</button>
+      <button id="reset-rank-btn" class="small-btn reset-rank-btn" type="button">🪵 Reset rank to Wood ★</button>
+      <button id="fullscreen-btn" class="small-btn" type="button">⛶ Fullscreen</button>
+      <button id="close-settings-btn" class="small-btn">Close</button>
+    </div>
+  </div>
+
+  <script src="../../fullscreen.js"></script>
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+  <script src="brawlers-roster.js"></script>
+  <script src="brawler-attacks.js"></script>
+  <script src="game.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    GameChat.init({ room: "brawl-stars-mod" });
+    window.AllOutFullscreen?.mountFloatButton(document.documentElement);
+  </script>
+</body>
+</html>

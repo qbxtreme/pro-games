@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Dragon</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <div id="hub-chrome" class="hub-chrome">
+    <header>
+      <button id="settings-btn" class="settings-btn" type="button" title="Settings">⚙️</button>
+      <h1 id="game-title">🐉 Dragon</h1>
+      <span class="multi-badge">👥 Multiplayer</span>
+      <div class="stats">
+        <span id="trainer-name" class="trainer-tag"></span>
+        <span id="wins">🏆 0</span>
+        <span id="coins">🪙 0</span>
+        <span id="food-count">🍖 0</span>
+        <span id="player-level">⭐ Lv 1</span>
+      </div>
+      <p id="world-progress" class="world-progress"></p>
+      <button id="world-switch-btn" class="world-switch-btn hidden">🌌 Go World Two</button>
+    </header>
+
+    <div id="daily-banner" class="daily-banner hidden">
+      <p>🎁 You got 5 coins today!</p>
+      <button id="claim-daily">Collect!</button>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="forest">🌾 Plains</button>
+      <button class="tab" data-tab="eggs">🥚 Buy Eggs</button>
+      <button class="tab" data-tab="pets">🐉 Pets</button>
+      <button class="tab" data-tab="quests">📋 Quests</button>
+      <button class="tab" data-tab="shop">🛒 Shop</button>
+    </nav>
+    </div>
+
+    <!-- FOREST -->
+    <section id="tab-forest" class="panel active">
+      <div id="world-wrap" class="world-wrap">
+        <canvas id="world-canvas"></canvas>
+        <button id="fight-btn" class="action-float fight-float hidden">⚔️ FIGHT!</button>
+        <button id="gym-btn" class="action-float gym-float hidden">🏛️ GYM</button>
+        <button id="boss-btn" class="action-float boss-float hidden">👹 BOSS!</button>
+        <button id="interact-btn" class="action-float interact-float hidden">🌿 Search</button>
+        <div class="joystick-wrap">
+          <div id="joystick-base" class="joystick-base">
+            <div id="joystick-knob" class="joystick-knob"></div>
+          </div>
+        </div>
+        <div id="world-hotbar" class="world-hotbar">
+          <div id="hotbar-equip" class="hotbar-equip">⚔️ No dragon equipped</div>
+          <div id="hotbar-biome" class="hotbar-biome">📍 Plains</div>
+          <div class="hotbar-stats">
+            <span id="hotbar-tokens" class="hotbar-stat">✨ Pro 0</span>
+            <span id="hotbar-coins" class="hotbar-stat">🪙 0</span>
+            <span id="hotbar-wins" class="hotbar-stat">🏆 0</span>
+            <span id="hotbar-food" class="hotbar-stat">🍖 0</span>
+            <span id="hotbar-level" class="hotbar-stat">⭐ Lv 1</span>
+          </div>
+          <div class="hotbar-actions">
+            <button type="button" class="hotbar-btn" data-hotbar-menu="quests">📋 Quests</button>
+            <button type="button" class="hotbar-btn" id="hotbar-worlds-btn">🌌 Worlds</button>
+            <button type="button" class="hotbar-btn" data-hotbar-menu="eggs">🥚 Eggs</button>
+            <button type="button" class="hotbar-btn" data-hotbar-menu="pets">🐉 Pets</button>
+            <button type="button" class="hotbar-btn" data-hotbar-menu="shop">🛒 Shop</button>
+            <button type="button" class="hotbar-btn" id="hotbar-settings-btn">⚙️</button>
+          </div>
+        </div>
+      </div>
+      <p id="world-hint" class="hint chrome-only">Walk <strong>right →</strong> on the sandy path to reach the 🌊 Ocean!</p>
+      <div id="equipped-display" class="equipped-display chrome-only">
+        <span class="equipped-label">⚔️ Equipped for battle:</span>
+        <span id="equipped-pet">No dragon equipped — go to Pets!</span>
+      </div>
+      <div id="biome-display" class="biome-display chrome-only">📍 You are in: <strong>Plains</strong></div>
+      <p class="move-hint chrome-only">Use the joystick to walk. Bump into mobs to battle — like All Out!</p>
+    </section>
+
+    <!-- EGGS -->
+    <section id="tab-eggs" class="panel game-menu-panel">
+      <button type="button" class="game-menu-back">← Back to World</button>
+      <div class="egg-shop-header">
+        <h2 class="egg-shop-title">🥚 Egg Shop — BUY HERE!</h2>
+        <p id="wins-display" class="wins-display">You have 🏆 0 wins</p>
+        <p class="hint">Win battles in Plains to get 🏆 wins. Then tap <strong>BUY</strong>!</p>
+      </div>
+      <div id="egg-shop" class="egg-shop"></div>
+      <hr class="divider">
+      <h3 class="section-title">Your Eggs — tap one to hatch!</h3>
+      <div id="egg-inventory" class="egg-inventory"></div>
+      <div id="hatch-result" class="hatch-result hidden"></div>
+    </section>
+
+    <!-- PETS -->
+    <section id="tab-pets" class="panel game-menu-panel">
+      <button type="button" class="game-menu-back">← Back to World</button>
+      <p class="hint">Tap a dragon to equip it, feed it, or level up!</p>
+      <div id="pet-list" class="pet-list"></div>
+      <div id="pet-detail" class="pet-detail hidden">
+        <button id="close-pet" class="small-btn">← Back</button>
+        <div id="pet-detail-content"></div>
+      </div>
+    </section>
+
+    <!-- QUESTS -->
+    <section id="tab-quests" class="panel game-menu-panel">
+      <button type="button" class="game-menu-back">← Back to World</button>
+      <p class="hint">Do these every day for bonus rewards!</p>
+      <div id="quest-list" class="quest-list"></div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="tab-shop" class="panel game-menu-panel">
+      <button type="button" class="game-menu-back">← Back to World</button>
+      <p class="hint">Spend 🪙 coins on snacks and star dust!</p>
+      <div id="shop-list" class="shop-list"></div>
+      <hr class="divider">
+      <h3 class="section-title">🥚 Egg Store (uses 🏆 wins)</h3>
+      <p class="hint">Quick buy — same eggs as the Buy Eggs tab!</p>
+      <div id="egg-shop-mini" class="egg-shop"></div>
+      <hr class="divider">
+      <h3 class="section-title">🎡 Prize Wheel — spin for coins!</h3>
+      <div class="wheel-area">
+        <div id="wheel-result" class="wheel-result">Tap Spin!</div>
+        <p id="wheel-spins-left" class="wheel-spins-left">Spins left: 3 / 3</p>
+        <button id="spin-btn" class="big-btn wheel-btn">🎡 Spin!</button>
+        <p class="wheel-hint">You get 3 spins every 6 hours! Most = 1 coin, lucky = 15 coins!</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Battle overlay — All Out Mob Battle style -->
+  <div id="battle-overlay" class="overlay battle-overlay-allout hidden">
+    <div id="battle-arena-shake" class="battle-arena-allout">
+      <div class="battle-sky"></div>
+      <div class="battle-sun-rays"></div>
+      <div class="battle-stadium"></div>
+      <div class="battle-stadium-crowd"></div>
+      <div class="battle-ground-plane"></div>
+      <div id="battle-flash" class="battle-flash hidden"></div>
+
+      <div id="encounter-banner" class="encounter-banner hidden">
+        <span id="encounter-text">A wild mob appeared!</span>
+      </div>
+
+      <div class="battle-hp-panel ally-hp-panel">
+        <div id="battle-pet-name" class="hp-panel-name">Dragon</div>
+        <div class="hp-bar battle-hp"><div id="battle-pet-hp" class="hp-fill ally-hp"></div></div>
+        <div id="battle-pet-hp-text" class="hp-text">100 / 100</div>
+      </div>
+      <div class="battle-hp-panel enemy-hp-panel">
+        <div id="battle-wild-name" class="hp-panel-name">Wild Blob</div>
+        <div class="hp-bar battle-hp"><div id="battle-wild-hp" class="hp-fill wild-hp"></div></div>
+        <div id="battle-wild-hp-text" class="hp-text">100 / 100</div>
+      </div>
+
+      <div class="battle-fighters-allout">
+        <div class="fighter-slot ally-slot">
+          <div class="fighter-platform ally-platform"></div>
+          <div id="battle-pet-sprite" class="battle-sprite ally-sprite"></div>
+        </div>
+        <div class="fighter-slot enemy-slot">
+          <div class="fighter-platform enemy-platform"></div>
+          <div id="battle-wild-sprite" class="battle-sprite enemy-sprite"></div>
+        </div>
+      </div>
+
+      <div id="damage-popup" class="damage-popup hidden"></div>
+      <div id="battle-confetti" class="battle-confetti"></div>
+      <p id="battle-msg" class="battle-msg-real"></p>
+      <p id="battle-turn-msg" class="battle-turn-msg"></p>
+      <div id="battle-swap-picker" class="battle-swap-picker hidden"></div>
+
+      <div class="allout-abilities">
+        <button id="attack-btn" class="allout-ability attack-btn-real" title="Attack">
+          <span class="ability-icon">👊</span><span class="ability-label">ATTACK</span>
+        </button>
+        <button id="special-btn" class="allout-ability special-btn-real" title="Special">
+          <span class="ability-icon">💥</span><span class="ability-label">SPECIAL</span>
+        </button>
+        <button id="swap-btn" class="allout-ability swap-btn-real" title="Swap">
+          <span class="ability-icon">🔄</span><span class="ability-label">SWAP</span>
+        </button>
+        <button id="flee-btn" class="allout-ability flee-btn-real" title="Run">
+          <span class="ability-icon">🏃</span><span class="ability-label">RUN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hatch animation -->
+  <div id="hatch-overlay" class="overlay hidden hatch-overlay">
+    <div class="hatch-scene">
+      <p id="hatch-status" class="hatch-status">Something is happening...</p>
+      <div class="hatch-stage">
+        <div id="hatch-glow" class="hatch-glow"></div>
+        <div id="hatch-egg" class="hatch-egg">
+          <div class="hatch-egg-body">🥚</div>
+          <div id="hatch-cracks" class="hatch-cracks hidden">
+            <span class="crack c1"></span>
+            <span class="crack c2"></span>
+            <span class="crack c3"></span>
+          </div>
+        </div>
+        <div id="hatch-pet" class="hatch-pet hidden"></div>
+        <div id="hatch-confetti" class="hatch-confetti"></div>
+        <div id="hatch-flash" class="hatch-flash hidden"></div>
+      </div>
+      <p id="hatch-tier-label" class="hatch-tier-label"></p>
+    </div>
+  </div>
+
+  <!-- Name prompt -->
+  <div id="name-overlay" class="overlay hidden">
+    <div class="name-box">
+      <h2 id="name-title">Name your dragon!</h2>
+      <div id="name-preview" class="name-preview">🔥</div>
+      <input id="name-input" type="text" maxlength="16" placeholder="Type a name...">
+      <button id="name-confirm" class="big-btn">OK!</button>
+    </div>
+  </div>
+
+  <!-- World Two unlock -->
+  <div id="world-two-overlay" class="overlay hidden">
+    <div class="starter-box world-two-box">
+      <h2>🌌 WORLD TWO UNLOCKED!</h2>
+      <p>You beat all <strong>4 gyms</strong> and the <strong>Cave Boss</strong>!</p>
+      <p>Explore a whole new world with:</p>
+      <p>❄️ <strong>Ice</strong> · 🌀 <strong>Hurricane</strong> · 🧪 <strong>Mad Green</strong> · 🌋 <strong>Lava</strong></p>
+      <button id="enter-world-two" class="big-btn">Enter World Two!</button>
+      <button id="stay-world-one" class="small-btn world-stay-btn">Stay in World One for now</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings-overlay" class="overlay hidden">
+    <div class="settings-box">
+      <h2>⚙️ Settings</h2>
+      <p class="settings-hint">Dragon Plains</p>
+      <button id="leave-game-btn" class="big-btn leave-game-btn">🏠 Leave Game</button>
+      <p class="settings-note">Go back to Pro Games</p>
+      <button id="close-settings-btn" class="small-btn settings-close-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Starter intro -->
+  <div id="starter-overlay" class="overlay">
+    <div class="starter-box">
+      <h2>🐉 Welcome to Dragon Plains!</h2>
+      <p>You get <strong>four starter dragons</strong> — fire, water, earth, and air!</p>
+      <p>Explore the plains and visit the Forest, Ocean, Volcano, and Sky Island!</p>
+      <button id="starter-begin" class="big-btn">Let's go!</button>
+    </div>
+  </div>
+
+  <script src="../../fullscreen.js"></script>
+    <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../_templates/base/all-out-easy.js"></script>
+  <script src="../_templates/base/all-out-help.js"></script>
+  <script src="../../owner-boost.js"></script>
+<script src="game.js"></script>
+  <script src="sprites.js"></script>
+  <script src="effects.js"></script>
+  <script src="features.js"></script>
+  <script src="world.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script>
+    if (typeof isWorldOneComplete === "function" && isWorldOneComplete()) {
+      state.worldTwoUnlocked = true;
+      saveState();
+    }
+    renderAll();
+    initWorld();
+    if (typeof setWorldPlayMode === "function") setWorldPlayMode(true);
+    GameChat.init({
+      room: "dragon-plains",
+      getName: () => (typeof state !== "undefined" && state.trainerName) || undefined,
+    });
+    if (typeof markGameMpCustom === "function") markGameMpCustom();
+    GameMP.init({
+      game: "dragon-plains",
+      subroom: "world-" + (state.currentWorld || 1),
+      getName: () => state.trainerName || "Trainer",
+      getState: () => {
+        const pet = typeof getEquippedPet === "function" ? getEquippedPet() : null;
+        return {
+          fx: state.playerFx,
+          fy: state.playerFy,
+          facing: typeof playerFacing !== "undefined" ? playerFacing : 1,
+          world: state.currentWorld || 1,
+          petElement: pet ? pet.element : null,
+          petStars: pet ? pet.stars || 1 : 0,
+        };
+      },
+      onPeers: (peers) => {
+        if (typeof setRemoteTrainers === "function") setRemoteTrainers(peers);
+      },
+    });
+    GameMP.start();
+    window.AllOutFullscreen?.autoOnGamePage({ target: document.documentElement });
+    document.addEventListener("click", () => {
+      if (typeof startMusic === "function") startMusic();
+    }, { once: true });
+  </script>
+</body>
+</html>
