@@ -17,7 +17,7 @@
   const LOADING_TIPS = [
     "Capture wild mobs and bring them back to Mob HQ!",
     "Upgrade your tranq gun to catch mobs easier!",
-    "Beat gym bosses to unlock new zones!",
+    "Beat gym leaders to unlock new zones!",
     "Some hybrid mobs can be bred again!",
   ];
 
@@ -47,7 +47,11 @@
       skyTop: "#2e7d32",
       skyBot: "#81c784",
       mobs: ["raptor", "compy", "dilo"],
-      bossColor: "#2e7d32",
+      gymName: "Water Gym",
+      gymBadge: "💧",
+      gymLeader: "Leader Marina",
+      bossLevel: 7,
+      bossColor: "#0288d1",
     },
     {
       id: 2,
@@ -60,6 +64,10 @@
       skyTop: "#ef6c00",
       skyBot: "#ffcc80",
       mobs: ["trike", "raptor", "para"],
+      gymName: "Rock Gym",
+      gymBadge: "🪨",
+      gymLeader: "Leader Brock",
+      bossLevel: 12,
       bossColor: "#6d4c41",
     },
     {
@@ -73,6 +81,10 @@
       skyTop: "#bf360c",
       skyBot: "#ff8a65",
       mobs: ["rex", "ptero", "ankyl"],
+      gymName: "Fire Gym",
+      gymBadge: "🔥",
+      gymLeader: "Leader Blaze",
+      bossLevel: 17,
       bossColor: "#d84315",
     },
     {
@@ -86,7 +98,11 @@
       skyTop: "#1b5e20",
       skyBot: "#66bb6a",
       mobs: ["bronto", "dilo", "para"],
-      bossColor: "#2e7d32",
+      gymName: "Grass Gym",
+      gymBadge: "🌿",
+      gymLeader: "Leader Fern",
+      bossLevel: 22,
+      bossColor: "#43a047",
     },
     {
       id: 5,
@@ -99,6 +115,10 @@
       skyTop: "#0277bd",
       skyBot: "#b3e5fc",
       mobs: ["frostRex", "ptero", "ankyl"],
+      gymName: "Ice Gym",
+      gymBadge: "❄️",
+      gymLeader: "Leader Glacier",
+      bossLevel: 27,
       bossColor: "#0288d1",
     },
   ];
@@ -318,6 +338,25 @@
     return state.bossesBeaten.includes(zoneId - 1);
   }
 
+  function getZoneGym(zone) {
+    if (!zone?.gymName) return null;
+    const level = zone.bossLevel ?? zone.mobLevel + 3;
+    const badge = zone.gymBadge || "🏅";
+    return {
+      level,
+      badge,
+      name: zone.gymName,
+      leader: zone.gymLeader || "Gym Leader",
+      shortLabel: `${badge} ${zone.gymName}`,
+      mapLabel: `${badge} ${zone.gymName} Lv ${level}`,
+      foeName: `${zone.gymLeader || "Gym Leader"} · Lv ${level}`,
+    };
+  }
+
+  function getBossLevel(zone) {
+    return getZoneGym(zone)?.level ?? zone.mobLevel + 3;
+  }
+
   function getMobStats(typeKey, mobLevel, isBoss) {
     const base = DINO_TYPES[typeKey] || DINO_TYPES.raptor;
     const lvMult = 1 + (mobLevel - 1) * 0.22;
@@ -457,7 +496,12 @@
   function updateActionButtons() {
     const zone = currentZone();
     setBtnVisible(document.getElementById("fight-btn"), btnSticky.mob && !battle && !zone.isPark && !zone.isPvp);
-    setBtnVisible(document.getElementById("boss-btn"), btnSticky.boss && !battle);
+    const bossBtn = document.getElementById("boss-btn");
+    setBtnVisible(bossBtn, btnSticky.boss && !battle);
+    if (bossBtn && btnSticky.boss && !battle) {
+      const gym = getZoneGym(zone);
+      bossBtn.textContent = gym ? `${gym.badge} GYM!` : "🏋️ GYM!";
+    }
     setBtnVisible(document.getElementById("portal-btn"), btnSticky.portal && !battle);
     setBtnVisible(document.getElementById("feed-btn"), btnSticky.feed && !battle && zone.isPark);
     setBtnVisible(
@@ -530,7 +574,7 @@
     if (battle || zoneId === state.zone) return;
     if (!isZoneUnlocked(zoneId)) {
       const z = getZone(zoneId);
-      showToast(`Need Lv ${z.reqLevel} and beat previous zone boss!`);
+      showToast(`Need Lv ${z.reqLevel} and beat the previous gym leader!`);
       return;
     }
     state.zone = zoneId;
@@ -593,12 +637,14 @@
 
     if (!boss.beaten) {
       const bs = worldToScreen(boss.x, boss.y);
+      const gym = getZoneGym(zone);
       if (bs.x > -80 && bs.x < w + 80) {
-        DPSprites.drawAlphaDino(ctx, bs.x, bs.y, animT, zone, zone.mobLevel + 3);
+        const bossLv = getBossLevel(zone);
+        DPSprites.drawGymLeader(ctx, bs.x, bs.y, animT, zone, bossLv, gym?.shortLabel);
         ctx.font = "bold 11px system-ui,sans-serif";
         ctx.fillStyle = "#ffeb3b";
         ctx.textAlign = "center";
-        ctx.fillText(`👑 ALPHA Lv ${zone.mobLevel + 3}`, bs.x, bs.y - 58);
+        ctx.fillText(gym?.mapLabel || `👑 GYM Lv ${bossLv}`, bs.x, bs.y - 58);
       }
     }
 
@@ -904,7 +950,8 @@
 
   function startBattle(mob, isBoss) {
     const zone = currentZone();
-    const mobLevel = isBoss ? zone.mobLevel + 3 : mob.mobLevel;
+    const gym = getZoneGym(zone);
+    const mobLevel = isBoss ? getBossLevel(zone) : mob.mobLevel;
     const typeKey = isBoss ? zone.mobs[0] : mob.typeKey;
     const type = DINO_TYPES[typeKey];
     const stats = getMobStats(typeKey, mobLevel, isBoss);
@@ -913,7 +960,10 @@
       mob,
       isBoss,
       mobLevel,
-      foeName: isBoss ? `${zone.name} Boss` : `${type.name} Lv ${mobLevel}`,
+      gym,
+      foeName: isBoss
+        ? (gym ? `${gym.leader} (${gym.shortLabel})` : `${zone.name} Boss`)
+        : `${type.name} Lv ${mobLevel}`,
       foeHp: stats.hp,
       foeMaxHp: stats.hp,
       foeAtk: stats.atk,
@@ -928,7 +978,9 @@
     document.getElementById("battle-overlay").classList.remove("hidden");
     window.GameSFX?.play("battle");
     document.getElementById("battle-banner").textContent = isBoss
-      ? `👑 ${battle.foeName} appeared!`
+      ? gym
+        ? `${gym.badge} ${gym.name} — ${gym.leader} challenges you!`
+        : `👑 ${battle.foeName} appeared!`
       : `Wild ${type.name} Lv ${mobLevel} — tranq to capture!`;
     document.getElementById("battle-you-name").textContent = state.name;
     document.getElementById("battle-foe-name").textContent = battle.foeName;
@@ -961,7 +1013,7 @@
       upgrades: state.expansions,
     });
     if (battle.isBoss) {
-      DPSprites.drawAlphaDino(battleCtx, 240 - shake, 75, animT, zone, battle.mobLevel);
+      DPSprites.drawGymLeader(battleCtx, 240 - shake, 75, animT, zone, battle.mobLevel, battle.gym?.shortLabel);
     } else {
       DPSprites.drawWildDino(
         battleCtx,
@@ -984,11 +1036,15 @@
       if (battle.isPvp) {
         showToast(`PvP win vs ${battle.foeName}! 🏆`);
       } else if (battle.isBoss) {
+        const gym = battle.gym || getZoneGym(currentZone());
         if (!state.bossesBeaten.includes(state.zone)) {
           state.bossesBeaten.push(state.zone);
         }
         boss.beaten = true;
         buildPortals();
+        if (gym) {
+          showToast(`Earned the ${gym.badge} ${gym.name} Badge! 🏅`);
+        }
         const next = state.zone + 1;
         if (next < ZONES.length) {
           const nextZone = getZone(next);
@@ -998,7 +1054,7 @@
             showToast(`Need Lv ${nextZone.reqLevel} to enter ${nextZone.name}.`);
           }
         } else {
-          showToast("You conquered every zone! 👑");
+          showToast("You beat every gym leader! 👑");
         }
         renderZoneNav();
       } else if (battle.mob) {

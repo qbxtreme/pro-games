@@ -451,12 +451,14 @@ body {
 .phase-banner.night { background: rgba(49, 27, 82, 0.88); color: #ede7f6; }
 .phase-banner.meeting { background: rgba(183, 28, 28, 0.88); color: #fff; }
 
-.joystick-wrap {
+/* Beat all-out-base.css (bottom-left joystick) — flush bottom-right */
+#game-wrap .joystick-wrap {
   position: absolute;
   left: auto !important;
-  right: max(14px, env(safe-area-inset-right)) !important;
-  bottom: max(14px, env(safe-area-inset-bottom)) !important;
-  z-index: 30;
+  right: env(safe-area-inset-right, 0px) !important;
+  bottom: env(safe-area-inset-bottom, 0px) !important;
+  top: auto !important;
+  z-index: 30 !important;
 }
 
 .joystick-base {

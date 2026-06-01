@@ -272,12 +272,13 @@
     ctx.restore();
   }
 
-  function drawAlphaDino(ctx, x, y, animT, zone, mobLevel) {
+  function drawGymLeader(ctx, x, y, animT, zone, mobLevel, label) {
     const pulse = 1 + Math.sin(animT * 3) * 0.04;
     const sc = (1.35 + Math.min(0.45, (mobLevel - 1) * 0.02)) * pulse;
     const c = zone.bossColor || "#00897b";
     const dark = shade(c, -0.25);
     const glow = 0.45 + Math.sin(animT * 4) * 0.2;
+    const tag = label || `GYM Lv ${mobLevel}`;
 
     ctx.save();
     ctx.translate(x, y);
@@ -303,15 +304,17 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.font = "bold 11px 'Comic Sans MS', system-ui, sans-serif";
+    ctx.font = "bold 10px 'Comic Sans MS', system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffeb3b";
     ctx.strokeStyle = "#111";
     ctx.lineWidth = 3;
-    ctx.strokeText(`ALPHA Lv ${mobLevel}`, 0, 58);
-    ctx.fillText(`ALPHA Lv ${mobLevel}`, 0, 58);
+    ctx.strokeText(`${tag} Lv ${mobLevel}`, 0, 58);
+    ctx.fillText(`${tag} Lv ${mobLevel}`, 0, 58);
     ctx.restore();
   }
+
+  const drawAlphaDino = drawGymLeader;
 
   function drawBlob(ctx, x, y, s, animT, opts) {
     opts = opts || {};
@@ -468,6 +471,7 @@
   window.DPSprites = {
     drawTrainer,
     drawWildDino,
+    drawGymLeader,
     drawAlphaDino,
     drawWorldTile,
     drawZoneSky,

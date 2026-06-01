@@ -518,6 +518,7 @@
   let playing = false;
   let animT = 0;
   let lastFrame = 0;
+  let lbTimer = 0;
   let player = { x: ISLAND_SPAWN.x, y: ISLAND_SPAWN.y, facing: 1 };
   let cam = { x: ISLAND_SPAWN.x, y: ISLAND_SPAWN.y };
   let mobs = [];
@@ -2562,7 +2563,7 @@
   function resize() {
     const wrap = document.getElementById("game-wrap");
     if (!canvas || !wrap) return;
-    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     w = wrap.clientWidth;
     h = wrap.clientHeight;
     canvas.width = Math.round(w * dpr);
@@ -2778,13 +2779,6 @@
 
     const ps = worldToScreen(player.x, player.y);
     FMSprites.drawPostFX(ctx, w, h, animT, ps.x, ps.y, zone);
-    window.GameRealism?.postFrame(ctx, w, h, {
-      animT,
-      focusX: ps.x,
-      focusY: ps.y,
-      zone,
-      vignette: 0.18,
-    });
   }
 
   function updateWorld(dt) {
@@ -2809,8 +2803,15 @@
       player.facing = dx >= 0 ? 1 : -1;
     }
 
-    cam.x += (player.x - cam.x) * Math.min(1, dt * 8);
-    cam.y += (player.y - cam.y) * Math.min(1, dt * 8);
+    // Lock camera while moving — laggy follow made the player drift on screen.
+    if (len > 0) {
+      cam.x = player.x;
+      cam.y = player.y;
+    } else {
+      const follow = Math.min(1, dt * 12);
+      cam.x += (player.x - cam.x) * follow;
+      cam.y += (player.y - cam.y) * follow;
+    }
 
     if (zone.isPier) {
       state.coins += parkIncomeRate() * dt;
@@ -3750,7 +3751,6 @@
           : zone.name;
     document.getElementById("world-label").textContent = `${areaName} · ${mobLabel} · ${fishName}`;
     if (state.hp < maxHp()) state.hp = maxHp();
-    if (playing) updateLeaderboard();
     if (!document.getElementById("worlds-overlay")?.classList.contains("hidden")) {
       renderWorldsList();
     }
@@ -4034,12 +4034,23 @@
 
   function gameLoop(now) {
     if (!playing) return;
-    const dt = Math.min(0.05, ((now || performance.now()) - lastFrame) / 1000 || 0.016);
-    lastFrame = now || performance.now();
+    const t = typeof now === "number" ? now : performance.now();
+    let dt = (t - lastFrame) / 1000;
+    if (!Number.isFinite(dt) || dt <= 0) {
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+    dt = Math.min(0.05, dt);
+    lastFrame = t;
     animT += dt;
     updateWorld(dt);
     drawWorld();
     if (battle) drawBattleScene(false);
+    lbTimer += dt;
+    if (lbTimer >= 2) {
+      lbTimer = 0;
+      updateLeaderboard();
+    }
     requestAnimationFrame(gameLoop);
   }
 

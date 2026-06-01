@@ -1211,6 +1211,16 @@
                   : abyss;
     const botC = depthMix < 0.32 ? mid : depthMix < 0.68 ? deep : abyss;
 
+    if (shoreDist > 92) {
+      const g = ctx.createLinearGradient(sx, sy, sx + tw * 0.1, sy + th);
+      g.addColorStop(0, topC);
+      g.addColorStop(0.45, shade(botC, 0.02));
+      g.addColorStop(1, botC);
+      ctx.fillStyle = g;
+      ctx.fillRect(sx, sy, tw, th);
+      return;
+    }
+
     const n = fbm(seed * 0.008, sx * 0.008 + animT * 0.018, 4);
     const n2 = fbm(seed * 0.011 + 50, sy * 0.009 - animT * 0.012, 3);
     const g = ctx.createLinearGradient(sx, sy, sx + tw * 0.15, sy + th);
