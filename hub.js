@@ -688,7 +688,10 @@ function setupMakeGameRequest() {
       renderHubStats();
       showHubToast("Sent! We got your game idea on the computer 🎮");
     } catch (err) {
-      showHubToast(err.message || "Run npm start so we can receive your idea!");
+      const msg = window.PRO_GAMES?.staticHost
+        ? "Game ideas need the full server — run npm start locally."
+        : err.message || "Run npm start so we can receive your idea!";
+      showHubToast(msg);
       refreshMakeGameBalance();
     } finally {
       sendBtn.disabled = getTokens() < MAKE_GAME_COST;
@@ -901,6 +904,9 @@ function setupWheel() {
 }
 
 async function initHub() {
+  if (window.PRO_GAMES?.staticHost) {
+    document.getElementById("static-host-banner")?.classList.remove("hidden");
+  }
   if (window.BecomeAProSave) {
     BecomeAProSave.syncProTokens();
     hubState = loadHubState();
