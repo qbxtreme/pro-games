@@ -14,7 +14,7 @@ body {
 
 body.world-play-mode {
   overflow: hidden;
-  background: #000;
+  background: #87ceeb;
 }
 
 #app {
@@ -25,12 +25,13 @@ body.world-play-mode {
 }
 
 body.world-play-mode #app {
-  max-width: none;
+  max-width: none !important;
   margin: 0;
   padding: 0;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
 }
 
 body.world-play-mode .hub-chrome,
@@ -46,7 +47,10 @@ body.world-play-mode #tab-forest.panel {
   margin: 0;
   border-radius: 0;
   min-height: 0;
-  background: #000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: transparent;
   box-shadow: none;
   z-index: 1;
 }
@@ -56,17 +60,36 @@ body.world-play-mode .world-wrap {
   inset: 0;
   max-height: none;
   min-height: 0;
-  height: 100%;
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   border: none;
   border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: hidden;
 }
 
 body.world-play-mode #world-canvas {
-  width: 100%;
-  height: 100%;
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  max-width: none !important;
   image-rendering: auto;
-  filter: contrast(1.1) saturate(1.14) brightness(1.02);
+  filter: none !important;
+  touch-action: none;
+}
+
+.world-wrap .gr-atmosphere,
+#world-wrap .gr-atmosphere {
+  display: none !important;
+}
+
+#world-wrap canvas,
+.world-wrap canvas {
+  filter: contrast(1.05) saturate(1.06);
 }
 
 body.world-play-mode .joystick-wrap {

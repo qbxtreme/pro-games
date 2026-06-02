@@ -271,7 +271,9 @@
   <script src="features.js"></script>
   <script src="world.js"></script>
   <script src="../../game-chat.js"></script>
+  <script>window.GR_DISABLE_AUTO = true;</script>
   <script src="../../game-realism.js"></script>
+  <script src="../_templates/base/game-realism-bootstrap.js"></script>
   <script src="../../game-multiplayer.js"></script>
   <script src="../_templates/base/game-mp-bootstrap.js"></script>
   <script>
@@ -279,9 +281,9 @@
       state.worldTwoUnlocked = true;
       saveState();
     }
-    renderAll();
-    initWorld();
     if (typeof setWorldPlayMode === "function") setWorldPlayMode(true);
+    renderAll();
+    if (typeof scheduleResizeCanvas === "function") scheduleResizeCanvas();
     GameChat.init({
       room: "dragon-plains",
       getName: () => (typeof state !== "undefined" && state.trainerName) || undefined,
@@ -307,7 +309,7 @@
       },
     });
     GameMP.start();
-    window.AllOutFullscreen?.autoOnGamePage({ target: document.documentElement });
+    // Fullscreen splash covers the game with a dark overlay — skip for this title.
     document.addEventListener("click", () => {
       if (typeof startMusic === "function") startMusic();
     }, { once: true });

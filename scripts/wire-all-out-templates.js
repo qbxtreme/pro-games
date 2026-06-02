@@ -40,6 +40,7 @@ function buildIndex(w) {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Game</title>
   <link rel="stylesheet" href="${tpl}style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
   <link rel="stylesheet" href="../_templates/base/all-out-base.css">
   <link rel="stylesheet" href="../../game-chat.css">
   <link rel="stylesheet" href="../../game-multiplayer.css">
@@ -105,6 +106,8 @@ function buildIndex(w) {
   <script src="../_templates/base/all-out-help.js"></script>
   <script src="${tpl}engine.js"></script>
   <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../_templates/base/game-realism-bootstrap.js"></script>
   <script src="../../game-multiplayer.js"></script>
   <script src="../_templates/base/game-mp-bootstrap.js"></script>
   <script>

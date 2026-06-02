@@ -3575,6 +3575,14 @@
         battle.mobLevel
       );
     }
+    window.GameRealism?.postFrame(battleCtx, bw, bh, {
+      animT,
+      focusX: bw * 0.5,
+      focusY: bh * 0.55,
+      vignette: 0.26,
+      grainCount: 70,
+      decor: zone.decor,
+    });
   }
 
   function endBattle(won) {
@@ -4211,6 +4219,7 @@
     removeRodShopButton();
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
+    if (canvas) canvas.dataset.grSkipAuto = "1";
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
     battleCanvas = document.getElementById("battle-canvas");

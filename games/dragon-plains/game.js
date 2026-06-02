@@ -571,8 +571,14 @@ function renderHotbar() {
 
 function setWorldPlayMode(on) {
   document.body.classList.toggle("world-play-mode", !!on);
+  document.getElementById("app")?.classList.toggle("playing", !!on);
   if (on) closeGameMenu(false);
-  if (typeof resizeCanvas === "function") resizeCanvas();
+  if (typeof scheduleResizeCanvas === "function") {
+    scheduleResizeCanvas();
+  } else if (typeof resizeCanvas === "function") {
+    resizeCanvas();
+    requestAnimationFrame(resizeCanvas);
+  }
 }
 
 function closeGameMenu(resize = true) {

@@ -670,9 +670,9 @@ function drawScreenDistanceFog(ctx, w, h, playerScreenX, playerScreenY, biome) {
     playerScreenX, playerScreenY, Math.max(w, h) * 0.72
   );
   grd.addColorStop(0, `rgba(${fogColor},0)`);
-  grd.addColorStop(0.45, `rgba(${fogColor},0)`);
-  grd.addColorStop(0.75, `rgba(${fogColor},0.18)`);
-  grd.addColorStop(1, `rgba(${fogColor},0.52)`);
+  grd.addColorStop(0.5, `rgba(${fogColor},0)`);
+  grd.addColorStop(0.82, `rgba(${fogColor},0.06)`);
+  grd.addColorStop(1, `rgba(${fogColor},0.14)`);
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, w, h);
 }

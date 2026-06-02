@@ -12,7 +12,6 @@
   const CHAR_XP_KEY = SAVE_PREFIX + "char-xp";
   const CHAR_RANK_KEY = SAVE_PREFIX + "char-rank";
 
-  const DRAGON_SHOP_COST = 100;
   const SKY_RACE_WIN_COINS = 50;
 
   const MAX_PLAYER_LEVEL = 100;
@@ -21,31 +20,34 @@
   const PASS_TIER_XP = 300;
   const CHAR_XP_PER_STAR = 80;
 
-  const RARITY_LABELS = {
-    common: "Common",
-    rare: "Rare",
-    superRare: "Super Rare",
-  };
-
   const RANK_TIERS = ["Wood", "Bronze", "Silver", "Gold", "Diamond"];
 
-  const DRAGON_ROSTER = [
-    { id: "ember", name: "Ember", emoji: "🔥", rarity: "common", role: "Balanced speed" },
-    { id: "storm", name: "Storm", emoji: "⚡", rarity: "common", role: "Fastest dragon" },
-    { id: "frost", name: "Frost", emoji: "❄️", rarity: "common", role: "Smooth control" },
-    { id: "mossy", name: "Mossy", emoji: "🌿", rarity: "common", role: "Forest glider" },
-    { id: "blaze", name: "Blaze", emoji: "💥", rarity: "common", role: "Turbo burst" },
-    { id: "coral", name: "Coral", emoji: "🪸", rarity: "common", role: "Reef rider" },
-    { id: "slate", name: "Slate", emoji: "🪨", rarity: "common", role: "Rock steady" },
-    { id: "sunny", name: "Sunny", emoji: "☀️", rarity: "common", role: "Sun streak" },
-    { id: "dusk", name: "Dusk", emoji: "🌙", rarity: "common", role: "Night flyer" },
-    { id: "pebble", name: "Pebble", emoji: "🐚", rarity: "common", role: "Desert dash" },
-    { id: "tide", name: "Tide", emoji: "🌊", rarity: "common", role: "Ocean surge" },
-    { id: "vine", name: "Vine", emoji: "🍃", rarity: "common", role: "Jungle zip" },
-  ];
+  function rosterApi() {
+    return window.DRDragonRoster;
+  }
+
+  function getRoster() {
+    return rosterApi()?.DRAGON_ROSTER || [];
+  }
+
+  function getRarityLabels() {
+    return rosterApi()?.RARITY_LABELS || { common: "Common" };
+  }
+
+  function rarityOrder() {
+    return rosterApi()?.RARITY_ORDER || ["common"];
+  }
+
+  function shopCostFor(id) {
+    return rosterApi()?.shopCostForDragon(id) || 100;
+  }
+
+  function findDragon(id) {
+    return rosterApi()?.findDragon(id);
+  }
 
   const DR_GAME_MODES = [
-    { id: "sky-race", name: "Sky Race", emoji: "🏁", cat: "Races", desc: "Race a CPU rival — win for 500 XP and 50 coins!" },
+    { id: "sky-race", name: "Sky Race", emoji: "🏁", cat: "Races", desc: "Race online rivals or CPU — win for 500 XP and 50 coins!" },
     { id: "gem-rush", name: "Gem Rush", emoji: "💎", cat: "Races", desc: "Extra gems spawn along the route." },
     { id: "storm-sprint", name: "Storm Sprint", emoji: "⛈️", cat: "Challenges", desc: "Higher speed from the start." },
   ];
@@ -339,9 +341,17 @@
   }
 
   function rarityCardClass(rarity) {
-    if (rarity === "common") return "brawler-card-common";
-    if (rarity === "rare") return "brawler-card-rare";
-    return "brawler-card-super-rare";
+    const map = {
+      common: "brawler-card-common",
+      rare: "brawler-card-rare",
+      superRare: "brawler-card-super-rare",
+      epic: "brawler-card-epic",
+      legendary: "brawler-card-legendary",
+      ultra: "brawler-card-ultra",
+      god: "brawler-card-god",
+      ultraGod: "brawler-card-ultra-god",
+    };
+    return map[rarity] || "brawler-card-common";
   }
 
   function getSelectedDragonId() {
@@ -352,12 +362,17 @@
   }
 
   function selectDragon(id) {
-    const dragon = DRAGON_ROSTER.find((d) => d.id === id);
+    const dragon = findDragon(id);
     if (!dragon) return;
     const state = callbacks.getState?.();
     if (!state) return;
+    const cost = shopCostFor(id);
 
     if (!hasPickedStarter()) {
+      if (dragon.rarity !== "common") {
+        callbacks.showToast?.("Pick a Common dragon as your free starter!");
+        return;
+      }
       unlockDragon(id);
       state.pickedStarter = true;
       state.dragon = id;
@@ -372,7 +387,7 @@
     }
 
     if (!isDragonUnlocked(id)) {
-      callbacks.showToast?.(`Unlock ${dragon.name} in the Shop for ${DRAGON_SHOP_COST} 🪙!`);
+      callbacks.showToast?.(`Unlock ${dragon.name} in the Shop for ${cost} 🪙!`);
       return;
     }
 
@@ -386,14 +401,14 @@
   }
 
   function updateDragonUnlockUI() {
-    DRAGON_ROSTER.forEach((entry) => {
+    getRoster().forEach((entry) => {
       const card = document.getElementById(`${entry.id}-card`);
       if (!card) return;
       const locked = showDragonLocked(entry.id);
       card.classList.toggle("locked", locked);
       const roleEl = card.querySelector(".brawler-role");
       if (roleEl) {
-        roleEl.textContent = locked ? `${DRAGON_SHOP_COST} 🪙` : entry.role;
+        roleEl.textContent = locked ? `${shopCostFor(entry.id)} 🪙` : entry.role;
       }
     });
   }
@@ -404,18 +419,20 @@
     scroll.dataset.built = "1";
 
     const byRarity = {};
-    DRAGON_ROSTER.forEach((d) => {
+    getRoster().forEach((d) => {
       if (!byRarity[d.rarity]) byRarity[d.rarity] = [];
       byRarity[d.rarity].push(d);
     });
 
-    Object.keys(byRarity).forEach((rarity) => {
+    const labels = getRarityLabels();
+    rarityOrder().forEach((rarity) => {
       const entries = byRarity[rarity];
+      if (!entries?.length) return;
       const section = document.createElement("div");
       section.className = "brawler-rarity-section";
       const heading = document.createElement("p");
       heading.className = "menu-section-label menu-section-label-sub";
-      heading.textContent = `Common Dragons (${entries.length})`;
+      heading.textContent = `${labels[rarity] || rarity} (${entries.length})`;
       section.appendChild(heading);
       const row = document.createElement("div");
       row.className = `brawler-cards brawler-cards-scroll ${rarity}-brawler-row`;
@@ -428,10 +445,22 @@
         btn.dataset.brawler = entry.id;
         btn.id = `${entry.id}-card`;
         if (entry.id === selectedId) btn.classList.add("selected");
-        btn.innerHTML = `<span class="brawler-portrait ${entry.id}-portrait">${entry.emoji}</span>
-          <span class="brawler-name">${entry.name}</span>
-          <span class="brawler-role">${locked ? `${DRAGON_SHOP_COST} 🪙` : entry.role}</span>
-          <span class="brawler-lock-tag">🔒</span>`;
+        const portrait = document.createElement("span");
+        portrait.className = `brawler-portrait ${entry.id}-portrait`;
+        portrait.textContent = entry.emoji;
+        if (window.DRSprites?.portraitGradient) {
+          portrait.style.background = window.DRSprites.portraitGradient(entry.id);
+        }
+        const nameEl = document.createElement("span");
+        nameEl.className = "brawler-name";
+        nameEl.textContent = entry.name;
+        const roleEl = document.createElement("span");
+        roleEl.className = "brawler-role";
+        roleEl.textContent = locked ? `${shopCostFor(entry.id)} 🪙` : entry.role;
+        const lockEl = document.createElement("span");
+        lockEl.className = "brawler-lock-tag";
+        lockEl.textContent = "🔒";
+        btn.append(portrait, nameEl, roleEl, lockEl);
         row.appendChild(btn);
       });
       section.appendChild(row);
@@ -449,16 +478,17 @@
     const emojiEl = document.getElementById("menu-hero-emoji");
     const nameEl = document.getElementById("menu-hero-name");
     const rarityEl = document.getElementById("menu-hero-rarity");
+    const labels = getRarityLabels();
     if (!id) {
       if (emojiEl) emojiEl.textContent = "🐲";
       if (nameEl) nameEl.textContent = "Pick one!";
-      if (rarityEl) rarityEl.textContent = "Starter";
+      if (rarityEl) rarityEl.textContent = "Common";
       return;
     }
-    const d = DRAGON_ROSTER.find((x) => x.id === id) || DRAGON_ROSTER[0];
+    const d = findDragon(id) || getRoster()[0];
     if (emojiEl) emojiEl.textContent = d.emoji;
     if (nameEl) nameEl.textContent = d.name;
-    if (rarityEl) rarityEl.textContent = RARITY_LABELS[d.rarity] || d.rarity;
+    if (rarityEl) rarityEl.textContent = labels[d.rarity] || d.rarity;
   }
 
   function resizeMenuHeroCanvas() {
@@ -580,28 +610,35 @@
   }
 
   function buildShopPanelHtml() {
-    let html = `<p class="quest-page-note">Win Sky Races for ${SKY_RACE_WIN_COINS} 🪙 each. Dragons cost ${DRAGON_SHOP_COST} 🪙.</p>`;
-    DRAGON_ROSTER.forEach((d) => {
-      const unlocked = isDragonUnlocked(d.id);
-      if (unlocked) {
-        html += `<button type="button" class="hub-game-link" disabled>${d.emoji} ${d.name} — Unlocked ✓</button>`;
-      } else {
-        html += `<button type="button" class="hub-game-link shop-unlock-btn" data-unlock-dragon="${d.id}">${d.emoji} Unlock ${d.name} — ${DRAGON_SHOP_COST} 🪙</button>`;
-      }
+    const labels = getRarityLabels();
+    let html = `<p class="quest-page-note">Win Sky Races for ${SKY_RACE_WIN_COINS} 🪙. Common dragons cost 100 🪙 — higher rarities cost more.</p>`;
+    rarityOrder().forEach((rarity) => {
+      const entries = getRoster().filter((d) => d.rarity === rarity && !isDragonUnlocked(d.id));
+      if (!entries.length) return;
+      html += `<p class="bs-games-cat-label">${labels[rarity] || rarity}</p>`;
+      entries.forEach((d) => {
+        const cost = shopCostFor(d.id);
+        html += `<button type="button" class="hub-game-link shop-unlock-btn" data-unlock-dragon="${d.id}">${d.emoji} Unlock ${d.name} — ${cost} 🪙</button>`;
+      });
     });
+    const allUnlocked = getRoster().every((d) => isDragonUnlocked(d.id));
+    if (allUnlocked) {
+      html += `<p class="quest-page-note">All dragons unlocked! 🎉</p>`;
+    }
     html += `<p class="quest-page-note">You have ${getCoins()} 🪙 coins.</p>`;
     return html;
   }
 
   function tryBuyDragon(id) {
-    const dragon = DRAGON_ROSTER.find((d) => d.id === id);
+    const dragon = findDragon(id);
     if (!dragon || isDragonUnlocked(id)) return;
-    if (getCoins() < DRAGON_SHOP_COST) {
-      callbacks.showToast?.(`Need ${DRAGON_SHOP_COST} 🪙 — win Sky Races for coins!`);
+    const cost = shopCostFor(id);
+    if (getCoins() < cost) {
+      callbacks.showToast?.(`Need ${cost} 🪙 — win Sky Races for coins!`);
       return;
     }
-    if (!spendCoins(DRAGON_SHOP_COST)) {
-      callbacks.showToast?.(`Need ${DRAGON_SHOP_COST} 🪙 — win Sky Races for coins!`);
+    if (!spendCoins(cost)) {
+      callbacks.showToast?.(`Need ${cost} 🪙 — win Sky Races for coins!`);
       return;
     }
     unlockDragon(id);

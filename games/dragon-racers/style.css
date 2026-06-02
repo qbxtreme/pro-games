@@ -69,6 +69,8 @@ body {
 .score-pill { background: #42a5f5; color: #fff; }
 .gem-pill { background: #7e57c2; color: #fff; }
 .best-pill { background: #ffb300; color: #3e2723; }
+.online-pill { background: #37474f; color: #fff; }
+.online-pill.live { background: #43a047; }
 
 #game-wrap {
   flex: 1;
@@ -82,6 +84,7 @@ body {
   width: 100%;
   height: 100%;
   touch-action: none;
+  image-rendering: auto;
 }
 
 .overlay {
@@ -217,6 +220,22 @@ input[type="text"] {
   filter: contrast(1.06) saturate(1.12) brightness(0.98);
 }
 
+#app.sky-race.playing #game-wrap {
+  background: #3d8fd4;
+}
+
+#app.sky-race.playing #game-wrap::after {
+  display: none !important;
+}
+
+#app.sky-race.playing #game-wrap .gr-atmosphere {
+  display: none !important;
+}
+
+#app.sky-race.playing #game-canvas {
+  filter: none !important;
+}
+
 #app.playing .stat-pill {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -272,13 +291,23 @@ input[type="text"] {
 
 .brawler-card-common.locked,
 .brawler-card-rare.locked,
-.brawler-card-super-rare.locked {
+.brawler-card-super-rare.locked,
+.brawler-card-epic.locked,
+.brawler-card-legendary.locked,
+.brawler-card-ultra.locked,
+.brawler-card-god.locked,
+.brawler-card-ultra-god.locked {
   opacity: 0.72;
 }
 
 .brawler-card-common:not(.locked) .brawler-lock-tag,
 .brawler-card-rare:not(.locked) .brawler-lock-tag,
-.brawler-card-super-rare:not(.locked) .brawler-lock-tag {
+.brawler-card-super-rare:not(.locked) .brawler-lock-tag,
+.brawler-card-epic:not(.locked) .brawler-lock-tag,
+.brawler-card-legendary:not(.locked) .brawler-lock-tag,
+.brawler-card-ultra:not(.locked) .brawler-lock-tag,
+.brawler-card-god:not(.locked) .brawler-lock-tag,
+.brawler-card-ultra-god:not(.locked) .brawler-lock-tag {
   display: none;
 }
 

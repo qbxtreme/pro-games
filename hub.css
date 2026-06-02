@@ -11,10 +11,11 @@ body {
   padding-bottom: max(112px, calc(env(safe-area-inset-bottom, 0px) + 112px));
   color: #263238;
   background:
-    radial-gradient(circle at 15% 20%, rgba(255,235,59,0.35) 0%, transparent 40%),
-    radial-gradient(circle at 85% 10%, rgba(129,212,250,0.4) 0%, transparent 35%),
-    radial-gradient(circle at 50% 90%, rgba(174,213,129,0.35) 0%, transparent 45%),
+    radial-gradient(circle at 15% 20%, rgba(255,235,59,0.38) 0%, transparent 42%),
+    radial-gradient(circle at 85% 10%, rgba(129,212,250,0.45) 0%, transparent 38%),
+    radial-gradient(circle at 50% 90%, rgba(174,213,129,0.38) 0%, transparent 48%),
     linear-gradient(160deg, #1a237e 0%, #3949ab 35%, #7986cb 70%, #b3e5fc 100%);
+  background-attachment: fixed;
 }
 
 #hub-app {

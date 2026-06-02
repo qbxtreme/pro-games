@@ -59,8 +59,11 @@ function initWorld() {
   if (!canvas || !wrap) return;
 
   ctx = canvas.getContext("2d");
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+  canvas.dataset.grSkipAuto = "1";
+  wrap.querySelector(".gr-atmosphere")?.remove();
+  window.addEventListener("resize", scheduleResizeCanvas);
+  window.visualViewport?.addEventListener("resize", scheduleResizeCanvas);
+  window.addEventListener("orientationchange", scheduleResizeCanvas);
 
   setupJoystick();
   setupKeyboard();
@@ -73,12 +76,58 @@ function initWorld() {
     lastTime = performance.now();
     worldLoopId = requestAnimationFrame(worldLoop);
   }
+  scheduleResizeCanvas();
+}
+
+function playViewportSize() {
+  const vp = window.visualViewport;
+  const w = Math.max(
+    1,
+    Math.round(vp?.width || window.innerWidth || document.documentElement.clientWidth)
+  );
+  const h = Math.max(
+    1,
+    Math.round(vp?.height || window.innerHeight || document.documentElement.clientHeight)
+  );
+  return { w, h };
 }
 
 function resizeCanvas() {
   if (!wrap || !canvas) return;
-  canvas.width = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
+  const inPlay = document.body.classList.contains("world-play-mode");
+  let w;
+  let h;
+  if (inPlay) {
+    ({ w, h } = playViewportSize());
+  } else {
+    const rect = wrap.getBoundingClientRect();
+    w = Math.max(1, Math.round(rect.width));
+    h = Math.max(1, Math.round(rect.height));
+  }
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  if (inPlay) {
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+  } else {
+    canvas.style.width = "100%";
+    canvas.style.height = "420px";
+  }
+  if (ctx) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+function scheduleResizeCanvas() {
+  resizeCanvas();
+  requestAnimationFrame(() => {
+    resizeCanvas();
+    requestAnimationFrame(resizeCanvas);
+  });
 }
 
 function setupJoystick() {
@@ -382,6 +431,27 @@ function onCanvasTap(e) {
 
 function drawWorld() {
   if (!ctx || !canvas) return;
+  if (canvas.width < 2 || canvas.height < 2) {
+    scheduleResizeCanvas();
+    return;
+  }
+  try {
+    drawWorldFrame();
+  } catch (err) {
+    console.error("drawWorld failed:", err);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    g.addColorStop(0, "#87ceeb");
+    g.addColorStop(1, "#e8f5e9");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  window.GameRealism?.markManualFrame?.();
+}
+
+function drawWorldFrame() {
   ensureMap();
   syncPlayerFloat();
   syncMobFloats();
@@ -403,6 +473,9 @@ function drawWorld() {
   camY = camSmoothY;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
 
   const playerBiome = getBiomeAt(Math.floor(state.playerFy), Math.floor(state.playerFx));
   if (typeof drawDynamicSky === "function") {
@@ -439,14 +512,8 @@ function drawWorld() {
   if (typeof drawLightShafts === "function") {
     drawLightShafts(ctx, canvas.width, canvas.height, playerBiome, animTick);
   }
-  drawColorGrade(playerBiome);
-  drawScreenBloom(playerBiome);
-  drawVignette(playerBiome);
   if (typeof drawFilmGrain === "function") {
     drawFilmGrain(ctx, canvas.width, canvas.height, animTick);
-  }
-  if (typeof drawChromaticAberration === "function") {
-    drawChromaticAberration(ctx, canvas.width, canvas.height);
   }
   drawWorldHUD();
 }
@@ -1117,14 +1184,14 @@ function drawColorGrade(biome) {
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "rgba(0,0,0,0.04)";
-  ctx.fillRect(0, canvas.height * 0.55, canvas.width, canvas.height * 0.45);
-  ctx.fillStyle = "rgba(255,255,255,0.03)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height * 0.25);
+  ctx.fillStyle = "rgba(0,0,0,0.015)";
+  ctx.fillRect(0, canvas.height * 0.62, canvas.width, canvas.height * 0.38);
+  ctx.fillStyle = "rgba(255,255,255,0.02)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height * 0.2);
 }
 
 function drawVignette(biome) {
-  const strength = biome === "cave" ? 0.72 : biome === "volcano" || biome === "lavazone" ? 0.52 : 0.44;
+  const strength = biome === "cave" ? 0.38 : biome === "volcano" || biome === "lavazone" ? 0.28 : 0.22;
   const grd = ctx.createRadialGradient(
     canvas.width / 2, canvas.height / 2, canvas.height * 0.08,
     canvas.width / 2, canvas.height / 2, canvas.height * 0.88

@@ -54,6 +54,11 @@ html, body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+#world-wrap canvas,
+.world-wrap canvas {
+  filter: contrast(1.07) saturate(1.1) brightness(1.02);
+}
+
 /* All Out joystick — bottom-left */
 .joystick-wrap {
   left: max(16px, env(safe-area-inset-left, 0px)) !important;
