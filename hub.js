@@ -55,6 +55,16 @@ const BAP_ORIGINALS = [
     available: true,
   },
   {
+    id: "dragon-racers",
+    title: "Dragon Racers",
+    emoji: "🏁",
+    description: "Blaze through the sky — dodge cliffs, snatch gems, beat your best run!",
+    path: "games/dragon-racers/",
+    tag: "Action",
+    engine: "local",
+    available: true,
+  },
+  {
     id: "hungry-snake-worm",
     title: "Snake.io",
     emoji: "🐍",
@@ -74,6 +84,17 @@ const BAP_ORIGINALS = [
     engine: "local",
     available: true,
   },
+  {
+    id: "mini-brawl-stars",
+    title: "Mini Brawl Stars",
+    emoji: "💥",
+    description: "Fast 3v3 brawls, showdown chaos, and pocket-sized mayhem!",
+    path: "games/mini-brawl-stars/",
+    tag: "PvP",
+    engine: "local",
+    available: false,
+    comingSoon: true,
+  },
 ];
 
 /** Catalog games hidden from the main hub (played elsewhere). */
@@ -81,9 +102,7 @@ const HUB_HIDDEN_GAME_IDS = new Set(["hungry-snake-worm"]);
 
 /** All Out catalog ids that use a custom full implementation folder. */
 const ALLOUT_PATH_OVERRIDES = {
-  "meme-car": "games/meme-car-race/",
   "fat-simulator": "games/fat-simulator/",
-  "random-roles": "games/random-roles/",
   "raise-a-monster": "games/raise-a-monster/",
   "fishermon": "games/fishermon/",
   "mob-battle": "games/mob-battle/",
@@ -98,18 +117,17 @@ function resolveGamePath(gameId) {
 
 const ALLOUT_TITLE_OVERRIDES = {
   "fat-simulator": "Coco Devouring",
-  "meme-car": "Meme Car",
   "raise-a-monster": "Raising a Monster",
 };
 
 /** Emoji shown on hub play tiles (replaces thumbnail images). */
 const GAME_EMOJIS = {
   "dragon-plains": "🐉",
+  "dragon-racers": "🏁",
   "brawl-stars-mod": "⭐",
+  "mini-brawl-stars": "💥",
   fishermon: "🎣",
   "murder-mystery": "🔪",
-  "random-roles": "🎭",
-  "meme-car": "🏎️",
   "mob-battle": "⚔️",
   "hungry-snake-worm": "🐍",
   "fat-simulator": "🐶",
@@ -164,7 +182,7 @@ function getGamesList() {
 }
 
 function getHubItems() {
-  return getGamesList().map((g) => ({ ...g, comingSoon: false }));
+  return getGamesList().map((g) => ({ ...g, comingSoon: !!g.comingSoon }));
 }
 
 function loadHubState() {
@@ -576,6 +594,10 @@ function createGameTile(item) {
     card.addEventListener("click", () => launchGame(item));
   } else if (item.comingSoon) {
     card.addEventListener("click", () => {
+      if (item.path) {
+        window.location.href = item.path;
+        return;
+      }
       const msg = item.description
         ? `${item.title} is coming soon! ${item.description}`
         : `${item.title} is coming soon! ${item.emoji || "🎮"}`;

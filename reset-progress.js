@@ -18,12 +18,12 @@
     "becomeAProTokens",
     "proMaxGearAppliedV1",
     "dragonForestSave",
+    "dragon-racers",
     "dogFatSimulator",
     "dinoPark",
     "fishermon",
     "mob-battle",
     "raisingAMonster",
-    "memeCarRaceSave",
     "snakeIoBest",
     "snakeIoBestUnranked",
     "snakeIoBestRanked",
@@ -41,7 +41,6 @@
     }
     ids.add("dragon-plains");
     ids.add("murder-3");
-    ids.add("random-roles");
     return [...ids];
   }
 

@@ -7,7 +7,6 @@
   const DINO_GEAR = ["tranq1", "tranq2", "snack", "gift", "fence", "arena"];
   const FISHERMON_GEAR = ["rod1", "rod2", "bait", "cooler", "anchor", "net"];
   const MONSTER_GEAR = ["horns", "crown", "flame", "aura"];
-  const MEME_CAR_IDS = ["rizz", "skibidi", "sigma", "toilet", "fanum", "gigachad", "ohio", "grimace"];
   const EGG_IDS = ["common", "rare", "epic", "legendary", "mythic", "divine"];
 
   const BRAINROT_GAMES = ["save-a-brainrot"];
@@ -130,14 +129,6 @@
       rebirths: 10,
       trophies: 99,
       upgrades: { chew: 20, bite: 15, sell: 10, auto: 1 },
-    })) count++;
-
-    if (merge("memeCarRaceSave", {
-      money: 999999999,
-      owned: MEME_CAR_IDS.slice(),
-      selected: "grimace",
-      bestSolo: 999999,
-      pvpWins: 999,
     })) count++;
 
     if (save("dragonForestSave", patchDragonForestSave(Object.assign({

@@ -5,9 +5,7 @@
   const LAST_GAME_KEY = "bapLastAllOutGame";
 
   const PATH_OVERRIDES = {
-    "meme-car": "games/meme-car-race/",
     "fat-simulator": "games/fat-simulator/",
-    "random-roles": "games/random-roles/",
     "raise-a-monster": "games/raise-a-monster/",
     fishermon: "games/fishermon/",
     "mob-battle": "games/mob-battle/",

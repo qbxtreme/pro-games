@@ -8,9 +8,9 @@
   const BOT_NAMES = {
     hub: ["ProBot", "GameFan", "TokenKing"],
     "dragon-plains": ["DragonMaster", "GymLeader", "ShinyHunter"],
+    "dragon-racers": ["SkyRider", "GemHunter", "Tailwind"],
     "snake-io": ["SlitherKing", "LongBoi", "CoilMaster"],
     "brawl-stars-mod": ["GemGrabber", "SuperMain", "BrawlKing"],
-    "meme-car-race": ["MemeLord", "RizzKing", "FanumTaxer"],
     "fat-simulator": ["ChonkyDog", "FatPup", "BurgerHound"],
   };
 
@@ -206,9 +206,9 @@
     const titles = {
       hub: "💬 Hub Chat",
       "dragon-plains": "💬 Dragon Chat",
+      "dragon-racers": "💬 Racer Chat",
       "snake-io": "💬 Snake Chat",
       "brawl-stars-mod": "💬 Brawl Chat",
-      "meme-car-race": "💬 Meme Car Chat",
       "fat-simulator": "💬 Coco Chat",
     };
     document.getElementById("game-chat-title").textContent = titles[room] || "💬 Chat";

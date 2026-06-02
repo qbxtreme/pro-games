@@ -32,7 +32,7 @@
     if (path.includes("digging")) return "digging";
     if (path.includes("sigma")) return "sigma";
     if (path.includes("dino-park") || path.includes("fishermon") || path.includes("mob-battle") || path.includes("ant-army") || path.includes("brainrot") || path.includes("raise-a-monster")) return "capture";
-    if (path.includes("infection") || path.includes("hide-and-seek") || path.includes("random-roles")) return "party";
+    if (path.includes("infection") || path.includes("hide-and-seek")) return "party";
     return "default";
   }
 

@@ -10,17 +10,14 @@ const GAMES_DIR = path.join(ROOT, "games");
 const EXISTING_FOLDERS = new Set([
   "fishermon",
   "raise-a-monster",
-  "random-roles",
-  "meme-car-race",
   "fat-simulator",
   "dragon-plains",
+  "dragon-racers",
   "snake-io",
   "_all-out-explorer",
 ]);
 
-const ID_TO_FOLDER = {
-  "meme-car": "meme-car-race",
-};
+const ID_TO_FOLDER = {};
 
 function loadCatalog() {
   const src = fs.readFileSync(path.join(ROOT, "all-out-games.js"), "utf8");

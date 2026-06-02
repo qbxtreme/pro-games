@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Dragon Racers</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <a href="../../index.html" class="icon-btn hub-link" title="Pro Games">🏠</a>
+      <div class="hud-top">
+        <span id="score-display" class="stat-pill score-pill">🏁 0 m</span>
+        <span id="gem-display" class="stat-pill gem-pill">💎 0</span>
+        <span id="best-display" class="stat-pill best-pill">⭐ Best 0</span>
+      </div>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="start-overlay" class="overlay">
+        <div class="panel race-panel">
+          <h1>🐲 Dragon Racers</h1>
+          <p class="tagline">Blaze through the sky — dodge cliffs, snatch gems, beat your best run!</p>
+          <ul class="feature-list">
+            <li>🔥 Auto-boost through floating canyons</li>
+            <li>💎 Collect gems for bonus distance</li>
+            <li>⬆️ Steer up &amp; down to survive</li>
+            <li>🏆 Unlock faster dragons as you race</li>
+          </ul>
+          <input id="name-input" type="text" maxlength="14" placeholder="Rider name..." value="Rider">
+          <p class="pick-label">Pick your dragon:</p>
+          <div class="dragon-row">
+            <button type="button" class="dragon-pick selected" data-dragon="ember">🔥 Ember</button>
+            <button type="button" class="dragon-pick" data-dragon="storm">⚡ Storm</button>
+            <button type="button" class="dragon-pick" data-dragon="frost">❄️ Frost</button>
+          </div>
+          <button id="play-btn" class="big-btn" type="button">Take Flight!</button>
+          <p class="hint">Joystick · WASD · Arrow keys</p>
+        </div>
+      </div>
+
+      <div id="gameover-overlay" class="overlay hidden">
+        <div class="panel race-panel">
+          <h2>💥 Crash!</h2>
+          <p id="final-score" class="final-score">0 m</p>
+          <p id="final-gems" class="final-gems">💎 0 gems</p>
+          <p id="new-best" class="new-best hidden">🏆 New best distance!</p>
+          <button id="retry-btn" class="big-btn" type="button">Race Again</button>
+          <button id="menu-btn" class="small-btn" type="button">Main Menu</button>
+        </div>
+      </div>
+
+      <div class="joystick-wrap">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+  </div>
+
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="sprites.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
