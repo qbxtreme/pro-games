@@ -24,6 +24,10 @@ body {
   display: none;
 }
 
+#app:not(.playing) .joystick-wrap {
+  display: none;
+}
+
 #game-header {
   display: flex;
   align-items: center;
@@ -147,43 +151,6 @@ input[type="text"] {
   margin-bottom: 10px;
 }
 
-.pick-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.menu-best {
-  font-size: 0.88rem;
-  font-weight: 800;
-  margin-bottom: 12px;
-  color: #e65100;
-}
-
-.dragon-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.dragon-pick {
-  padding: 8px 12px;
-  border: 3px solid #111;
-  border-radius: 12px;
-  background: #fff;
-  font-weight: 800;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.dragon-pick.selected {
-  background: #ff7043;
-  color: #fff;
-  box-shadow: 0 3px 0 #bf360c;
-}
-
 .big-btn {
   display: block;
   width: 100%;
@@ -288,4 +255,40 @@ input[type="text"] {
 
 .toast.hidden {
   display: none;
+}
+
+.ember-portrait { background: linear-gradient(135deg, #e53935, #ff7043); }
+.storm-portrait { background: linear-gradient(135deg, #3949ab, #5c6bc0); }
+.frost-portrait { background: linear-gradient(135deg, #0288d1, #4fc3f7); }
+.mossy-portrait { background: linear-gradient(135deg, #2e7d32, #66bb6a); }
+.blaze-portrait { background: linear-gradient(135deg, #e64a19, #ff5722); }
+.coral-portrait { background: linear-gradient(135deg, #d81b60, #f06292); }
+.slate-portrait { background: linear-gradient(135deg, #546e7a, #90a4ae); }
+.sunny-portrait { background: linear-gradient(135deg, #f9a825, #ffca28); }
+.dusk-portrait { background: linear-gradient(135deg, #512da8, #9575cd); }
+.pebble-portrait { background: linear-gradient(135deg, #795548, #a1887f); }
+.tide-portrait { background: linear-gradient(135deg, #00838f, #26a69a); }
+.vine-portrait { background: linear-gradient(135deg, #558b2f, #9ccc65); }
+
+.brawler-card-common.locked,
+.brawler-card-rare.locked,
+.brawler-card-super-rare.locked {
+  opacity: 0.72;
+}
+
+.brawler-card-common:not(.locked) .brawler-lock-tag,
+.brawler-card-rare:not(.locked) .brawler-lock-tag,
+.brawler-card-super-rare:not(.locked) .brawler-lock-tag {
+  display: none;
+}
+
+.race-xp-msg {
+  color: #2e7d32;
+  font-weight: 900;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+#gameover-overlay {
+  z-index: 55;
 }
