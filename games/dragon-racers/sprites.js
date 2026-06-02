@@ -460,6 +460,16 @@
       ctx.globalAlpha = 1;
     }
 
+    if (opts.invincible) {
+      ctx.globalAlpha = 0.35 + Math.sin(animT * 18) * 0.2;
+      ctx.strokeStyle = "#fff59d";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(0, 2, 34, 26, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     ctx.restore();
   }
 

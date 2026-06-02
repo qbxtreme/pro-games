@@ -153,6 +153,13 @@ input[type="text"] {
   margin-bottom: 8px;
 }
 
+.menu-best {
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #e65100;
+}
+
 .dragon-row {
   display: flex;
   flex-wrap: wrap;

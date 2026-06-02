@@ -33,6 +33,8 @@
   let windTimer = 0;
   let toastTimer = 0;
   let bank = 0;
+  let invincible = 0;
+  let attractScroll = 0;
 
   function loadState() {
     try {
@@ -69,10 +71,16 @@
     if (playing) player.x = w * 0.28;
   }
 
+  function updateMenuBest() {
+    const el = document.getElementById("menu-best");
+    if (el) el.textContent = `⭐ Best run: ${Math.floor(state.best)} m`;
+  }
+
   function updateHud() {
     document.getElementById("score-display").textContent = `🏁 ${Math.floor(distance)} m`;
     document.getElementById("gem-display").textContent = `💎 ${gems}`;
     document.getElementById("best-display").textContent = `⭐ Best ${Math.floor(state.best)}`;
+    updateMenuBest();
   }
 
   function spawnEntity() {
@@ -107,7 +115,9 @@
     spawnTimer = 0;
     windTimer = 0;
     bank = 0;
+    invincible = 3;
     updateHud();
+    showToast("Take flight! Dodge obstacles!");
   }
 
   function startGame() {
@@ -120,8 +130,8 @@
     resetRun();
     resize();
     window.GameSFX?.play("start");
+    if (window.BecomeAPro?.recordGamePlayed) BecomeAPro.recordGamePlayed("dragon-racers");
     lastFrame = performance.now();
-    requestAnimationFrame(loop);
   }
 
   function endRun() {
@@ -211,10 +221,10 @@
 
     let dx = joy.dx;
     let dy = joy.dy;
-    if (keys.ArrowUp || keys.w) dy -= 1;
-    if (keys.ArrowDown || keys.s) dy += 1;
-    if (keys.ArrowLeft || keys.a) dx -= 1;
-    if (keys.ArrowRight || keys.d) dx += 1;
+    if (keys.ArrowUp || keys.arrowup || keys.w || keys.W) dy -= 1;
+    if (keys.ArrowDown || keys.arrowdown || keys.s || keys.S) dy += 1;
+    if (keys.ArrowLeft || keys.arrowleft || keys.a || keys.A) dx -= 1;
+    if (keys.ArrowRight || keys.arrowright || keys.d || keys.D) dx += 1;
     const len = Math.hypot(dx, dy) || 1;
     if (Math.abs(dx) + Math.abs(dy) > 0.05) {
       dx /= len;
@@ -237,10 +247,16 @@
     emitThrust(player.x, player.y, speed);
     updateParticles(dt, speed);
 
+    if (invincible > 0) {
+      invincible -= dt;
+      if (invincible <= 0) invincible = 0;
+    }
+
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
       spawnEntity();
-      spawnTimer = Math.max(0.55, 1.35 - distance * 0.0008);
+      const ramp = Math.max(0.65, 1.35 - distance * 0.0008);
+      spawnTimer = invincible > 0 ? Math.max(ramp, 0.95) : ramp;
     }
 
     const pr = 22;
@@ -266,7 +282,7 @@
         showToast("Ring bonus +40 m!");
         continue;
       }
-      if (e.type === "obstacle" && rectHit(player.x, player.y, pr, e.x, e.y, e.w, e.h)) {
+      if (e.type === "obstacle" && invincible <= 0 && rectHit(player.x, player.y, pr, e.x, e.y, e.w, e.h)) {
         endRun();
         return;
       }
@@ -278,6 +294,30 @@
       toastTimer -= dt;
       if (toastTimer <= 0) document.getElementById("toast")?.classList.add("hidden");
     }
+  }
+
+  function drawAttract(dt) {
+    if (w < 2 || h < 2) return;
+    attractScroll += 90 * dt;
+    animT += dt;
+    ctx.clearRect(0, 0, w, h);
+    DRSprites.drawSky(ctx, w, h, attractScroll, animT);
+    DRSprites.drawTerrain(ctx, w, h, attractScroll, animT);
+    const previewY = h * 0.48 + Math.sin(animT * 1.4) * 12;
+    DRSprites.drawDragon(ctx, w * 0.32, previewY, 1.2, 1, state.dragon, animT, {
+      boost: true,
+      speed: 280,
+      bank: Math.sin(animT * 1.2) * 0.08,
+    });
+    window.GameRealism?.postFrame(ctx, w, h, {
+      animT,
+      focusX: w * 0.32,
+      focusY: previewY,
+      vignette: 0.18,
+      grainCount: 80,
+      haze: true,
+      horizon: 0.42,
+    });
   }
 
   function draw() {
@@ -306,6 +346,7 @@
       boost: true,
       speed,
       bank,
+      invincible: invincible > 0,
     });
 
     DRSprites.drawParticles(ctx, particles.filter((p) => p.kind === "spark"));
@@ -331,7 +372,6 @@
   }
 
   function loop(now) {
-    if (!playing) return;
     const t = typeof now === "number" ? now : performance.now();
     let dt = (t - lastFrame) / 1000;
     if (!Number.isFinite(dt) || dt <= 0) {
@@ -340,9 +380,14 @@
     }
     dt = Math.min(0.05, dt);
     lastFrame = t;
-    animT += dt;
-    update(dt);
-    draw();
+
+    if (playing) {
+      animT += dt;
+      update(dt);
+      draw();
+    } else {
+      drawAttract(dt);
+    }
     requestAnimationFrame(loop);
   }
 
@@ -390,6 +435,7 @@
     document.getElementById("play-btn").addEventListener("click", startGame);
     document.getElementById("retry-btn").addEventListener("click", startGame);
     document.getElementById("menu-btn").addEventListener("click", () => {
+      playing = false;
       document.getElementById("gameover-overlay").classList.add("hidden");
       document.getElementById("start-overlay").classList.remove("hidden");
       document.getElementById("app").classList.remove("playing");
@@ -405,10 +451,19 @@
     });
 
     window.addEventListener("keydown", (e) => {
-      keys[e.key.toLowerCase()] = true;
+      const k = e.key.toLowerCase();
+      keys[k] = true;
+      keys[e.key] = true;
+      if ((k === " " || k === "enter") && !playing) {
+        const startVisible = !document.getElementById("start-overlay")?.classList.contains("hidden");
+        const gameOverVisible = !document.getElementById("gameover-overlay")?.classList.contains("hidden");
+        if (startVisible) startGame();
+        else if (gameOverVisible) startGame();
+      }
     });
     window.addEventListener("keyup", (e) => {
       keys[e.key.toLowerCase()] = false;
+      keys[e.key] = false;
     });
     window.addEventListener("resize", resize);
   }
@@ -425,6 +480,8 @@
     setupJoystick();
     bindEvents();
     resize();
+    lastFrame = performance.now();
+    requestAnimationFrame(loop);
   }
 
   init();
