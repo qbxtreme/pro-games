@@ -3,6 +3,9 @@
 const PET_MAX_LEVEL = Infinity;
 const NORMAL_PET_MAX_LEVEL = 99;
 const WILD_LEVEL_CAP = 99;
+const WILD_MOB_LEVEL_MIN = 1;
+const WILD_MOB_LEVEL_MAX = 8;
+const WILD_MOB_LEVEL_MAX_WORLD2 = 12;
 
 function isInfinityLevel(n) {
   return n === Infinity || n === "Infinity";
@@ -414,11 +417,33 @@ function capWildLevel(level) {
   return Math.min(n, WILD_LEVEL_CAP);
 }
 
-function randomWildLevel(wild) {
+function wildMobLevelCap() {
+  return state?.currentWorld === 2 ? WILD_MOB_LEVEL_MAX_WORLD2 : WILD_MOB_LEVEL_MAX;
+}
+
+function randomWildLevel(wild, opts = {}) {
   const hash = String(wild?.name || "mob").split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-  const playerLv = Math.min(normalizeLevel(state?.playerLevel || 1), WILD_LEVEL_CAP);
-  const offset = (hash % 5) - 2;
-  return Math.max(1, Math.min(WILD_LEVEL_CAP, playerLv + offset));
+  let level = 1 + (hash % 4);
+  if (opts.caveMob) level += 2;
+  if (state?.currentWorld === 2) level += 2;
+  return Math.max(WILD_MOB_LEVEL_MIN, Math.min(wildMobLevelCap(), level));
+}
+
+function refreshWildMobLevels() {
+  state.mobs.forEach((mob) => {
+    if (mob.animal) {
+      mob.animal.level = randomWildLevel(mob.animal, { caveMob: mob.caveMob });
+    }
+  });
+}
+
+function getWildBattleLevel(wild, opts) {
+  if (opts?.isGym || opts?.isBoss) return capWildLevel(wild?.level || opts?.power || 1);
+  let caveMob = !!opts?.caveMob;
+  if (opts?.mobId) {
+    caveMob = !!state.mobs.find((m) => m.id === opts.mobId)?.caveMob;
+  }
+  return randomWildLevel(wild, { caveMob });
 }
 
 function getBattlePetHp(pet) {
@@ -426,11 +451,6 @@ function getBattlePetHp(pet) {
   const power = petPower(pet);
   if (!Number.isFinite(power)) return 40 + normalizeLevel(state.playerLevel) * 3;
   return 40 + power * 2;
-}
-
-function getWildBattleLevel(wild, opts) {
-  if (opts?.isGym || opts?.isBoss) return capWildLevel(wild?.level || opts?.power || 1);
-  return capWildLevel(wild?.level || randomWildLevel(wild));
 }
 
 function wildBattleHp(wild, opts, mobId) {
@@ -915,7 +935,10 @@ function carveWorldPaths() {
 function ensureMap() {
   const mapKey = `${state.currentWorld || 1}-${MAP_VERSION}`;
   if (state.mapGenerated && state.mapGrid && state.mapVersion === mapKey
-      && state.mapGrid.length === MAP_SIZE) return;
+      && state.mapGrid.length === MAP_SIZE) {
+    refreshWildMobLevels();
+    return;
+  }
 
   if (!state.worlds[state.currentWorld]?.mapGenerated) {
     const spawn = getWorldSpawn();
@@ -967,6 +990,7 @@ function ensureMap() {
 
   state.mapGenerated = true;
   state.mapVersion = mapKey;
+  refreshWildMobLevels();
   persistCurrentWorld();
   saveState();
 }
@@ -1071,7 +1095,9 @@ function startBattle(wildAnimal = null, mobId = null, opts = null) {
   if (!pet) return;
 
   const wild = { ...(wildAnimal || WILD_ANIMALS[Math.floor(Math.random() * WILD_ANIMALS.length)]) };
-  if (!opts?.isGym && !opts?.isBoss && !wild.level) {
+  if (!opts?.isGym && !opts?.isBoss) {
+    wild.level = getWildBattleLevel(wild, { mobId, ...opts });
+  } else if (!wild.level) {
     wild.level = randomWildLevel(wild);
   }
   const wildHp = wildBattleHp(wild, opts, mobId);
