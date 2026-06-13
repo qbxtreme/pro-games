@@ -429,3 +429,19 @@ function init() {
 }
 
 init();
+
+window.__mathOlympiad3D = function () {
+  const moPlay = document.getElementById("mo-play");
+  if (!moPlay || moPlay.classList.contains("hidden")) return null;
+  return {
+    worldW: 2000,
+    worldH: 2000,
+    ground: "#1a237e",
+    defaultModel: "dragon",
+    player: { x: 1000, y: 1000, model: "dragon", color: "#ffd700" },
+    entities: [
+      { id: "trophy", x: 1200, y: 800, model: "mob", color: "#ffc107", scale: 1.2 },
+      { id: "star", x: 800, y: 1200, model: "mob", color: "#42a5f5", scale: 0.9 },
+    ],
+  };
+};

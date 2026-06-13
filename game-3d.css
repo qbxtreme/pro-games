@@ -1,0 +1,22 @@
+#game3d-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#game3d-layer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#app.game-3d-active #game-canvas,
+#app.game-3d-active #world-canvas {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+#app.game-3d-active .world-wrap #world-canvas {
+  opacity: 0 !important;
+}

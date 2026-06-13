@@ -18,7 +18,7 @@
     "becomeAProTokens",
     "proMaxGearAppliedV1",
     "dragonForestSave",
-    "dragon-racers",
+    "ranked-battling",
     "dogFatSimulator",
     "dinoPark",
     "fishermon",

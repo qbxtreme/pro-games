@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Ranked Battling</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <a href="../../index.html" class="icon-btn hub-link" title="Pro Games">🏠</a>
+      <div id="world-rank-hud" class="world-rank-hud hidden">
+        <span id="hud-rank-badge" class="hud-rank-badge rank-E">E</span>
+        <span id="hud-xp-text" class="hud-xp-text">0 / 500 XP</span>
+      </div>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="world3d" class="world3d hidden"></div>
+
+      <div id="world-hud" class="world-hud hidden">
+        <p id="dragon-title" class="dragon-title">👑 Divine Golden Dragon</p>
+        <p id="biome-hint" class="biome-hint">🌿 Dragon Plains</p>
+        <div class="world-compass" aria-hidden="true">
+          <span class="compass-n">N</span>
+          <span class="compass-s">S</span>
+          <span class="compass-w">W</span>
+          <span class="compass-e">E</span>
+        </div>
+        <p id="bush-hint" class="bush-hint hidden">🌿 Hidden in bush</p>
+        <div class="joystick-wrap">
+          <div id="joystick-base" class="joystick-base">
+            <div id="joystick-knob" class="joystick-knob"></div>
+          </div>
+        </div>
+        <div class="ability-dock">
+          <button id="roll-btn" class="ability-btn" type="button">🌀 Roll</button>
+          <button id="burst-btn" class="ability-btn burst-btn" type="button">✨ Burst</button>
+          <button id="roar-btn" class="ability-btn roar-btn" type="button">👑 Roar</button>
+        </div>
+      </div>
+
+      <div id="menu-overlay" class="overlay rank-screen">
+        <div class="rank-screen-inner">
+          <p class="divine-label">👑 Divine Golden Dragon</p>
+          <div id="big-rank-display" class="big-rank rank-E" role="status" aria-live="polite">E</div>
+          <p id="rank-xp-display" class="rank-xp-display">0 / 500 XP</p>
+          <button id="start-btn" class="start-btn" type="button">Start</button>
+        </div>
+      </div>
+
+      <div id="battle-overlay" class="overlay hidden">
+        <div class="battle-panel">
+          <p id="battle-banner" class="battle-banner">Ranked Match!</p>
+          <div class="battle-ranks">
+            <div class="battle-fighter you">
+              <span id="you-rank-badge" class="rank-badge rank-E">E</span>
+              <canvas id="you-dragon-canvas" width="120" height="90"></canvas>
+              <strong id="you-name">Divine Gold</strong>
+              <div class="hp-wrap"><div id="you-hp" class="hp-bar"></div></div>
+              <span id="you-hp-text">100 / 100</span>
+            </div>
+            <span class="vs">VS</span>
+            <div class="battle-fighter foe">
+              <span id="foe-rank-badge" class="rank-badge rank-D">D</span>
+              <canvas id="foe-dragon-canvas" width="120" height="90"></canvas>
+              <strong id="foe-name">Rival</strong>
+              <div class="hp-wrap"><div id="foe-hp" class="hp-bar foe-hp"></div></div>
+              <span id="foe-hp-text">100 / 100</span>
+            </div>
+          </div>
+          <p id="battle-msg" class="battle-msg">Choose your attack!</p>
+          <div class="battle-actions">
+            <button id="attack-btn" class="battle-btn attack-btn" type="button">⚔️ Dragon Strike</button>
+            <button id="special-btn" class="battle-btn special-btn" type="button">✨ Divine Burst</button>
+          </div>
+          <button id="flee-btn" class="small-btn flee-btn" type="button">🏳️ Forfeit (−50 XP)</button>
+        </div>
+      </div>
+
+      <div id="result-overlay" class="overlay hidden">
+        <div class="panel result-panel">
+          <h2 id="result-title">Victory!</h2>
+          <p id="result-msg"></p>
+          <p id="rank-up-msg" class="rank-up-msg hidden"></p>
+          <button id="result-continue-btn" class="big-btn" type="button">Continue</button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="../../owner-boost.js"></script>
+  <script src="sprites.js"></script>
+  <script src="world3d.js"></script>
+  <script src="game.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script>
+    GameChat.init({ room: "ranked-battling" });
+    if (window.BecomeAPro?.recordGamePlayed) BecomeAPro.recordGamePlayed("ranked-battling");
+  </script>
+</body>
+</html>

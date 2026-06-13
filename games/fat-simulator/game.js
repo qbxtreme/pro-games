@@ -1725,4 +1725,30 @@
   }
 
   init();
+
+  window.__fatSim3D = function () {
+    if (!playing) return null;
+    return {
+      worldW: WORLD_W,
+      worldH: WORLD_H,
+      ground: "#8bc34a",
+      defaultModel: "worm",
+      player: {
+        x: player.x - WORLD_X_MIN,
+        y: player.y,
+        facing: player.facing,
+        model: "worm",
+        color: "#8d6e63",
+        scale: 1 + (state.fat || 0) * 0.002,
+      },
+      entities: snacks.slice(0, 40).map((s, i) => ({
+        id: `snack${i}`,
+        x: s.x - WORLD_X_MIN,
+        y: s.y,
+        model: "mob",
+        color: "#ff9800",
+        scale: 0.5,
+      })),
+    };
+  };
 })();

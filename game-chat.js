@@ -8,7 +8,7 @@
   const BOT_NAMES = {
     hub: ["ProBot", "GameFan", "TokenKing"],
     "dragon-plains": ["DragonMaster", "GymLeader", "ShinyHunter"],
-    "dragon-racers": ["SkyRider", "GemHunter", "Tailwind"],
+    "ranked-battling": ["RankClimber", "SSSPro", "DragonAce"],
     "snake-io": ["SlitherKing", "LongBoi", "CoilMaster"],
     "brawl-stars-mod": ["GemGrabber", "SuperMain", "BrawlKing"],
     "fat-simulator": ["ChonkyDog", "FatPup", "BurgerHound"],
@@ -206,7 +206,7 @@
     const titles = {
       hub: "💬 Hub Chat",
       "dragon-plains": "💬 Dragon Chat",
-      "dragon-racers": "💬 Racer Chat",
+      "ranked-battling": "💬 Ranked Chat",
       "snake-io": "💬 Snake Chat",
       "brawl-stars-mod": "💬 Brawl Chat",
       "fat-simulator": "💬 Coco Chat",

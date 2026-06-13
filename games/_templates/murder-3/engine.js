@@ -804,4 +804,30 @@
   }
 
   init();
+
+  window.__murder3D = function () {
+    if (!playing || !round?.you) return null;
+    const you = round.you;
+    return {
+      worldW: MMMap.WORLD_W,
+      worldH: MMMap.WORLD_H,
+      ground: "#4e342e",
+      defaultModel: "trainer",
+      player: {
+        x: you.x,
+        y: you.y,
+        model: "trainer",
+        color: "#78909c",
+      },
+      entities: (round.players || [])
+        .filter((p) => p !== you && p.alive)
+        .map((p, i) => ({
+          id: p.id || `p${i}`,
+          x: p.x,
+          y: p.y,
+          model: "trainer",
+          color: p.color || "#ef5350",
+        })),
+    };
+  };
 })();

@@ -1332,4 +1332,30 @@
   }
 
   init();
+
+  window.__mobBattle3D = function () {
+    if (!playing || battle) return null;
+    const zone = ZONES[state.zone] || ZONES[0];
+    return {
+      worldW: 2600,
+      worldH: 1800,
+      ground: zone.floor || "#7cb342",
+      defaultModel: "trainer",
+      player: {
+        x: player.x,
+        y: player.y,
+        facing: player.facing,
+        model: "trainer",
+        color: state.style === "cool" ? "#42a5f5" : state.style === "wild" ? "#26a69a" : "#ef5350",
+      },
+      entities: mobs.map((m, i) => ({
+        id: m.id || `mob${i}`,
+        x: m.x,
+        y: m.y,
+        model: "mob",
+        color: m.color || "#ab47bc",
+        scale: 0.75 + (m.level || 1) * 0.04,
+      })),
+    };
+  };
 })();

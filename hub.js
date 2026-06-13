@@ -55,16 +55,6 @@ const BAP_ORIGINALS = [
     available: true,
   },
   {
-    id: "dragon-racers",
-    title: "Dragon Racers",
-    emoji: "🏁",
-    description: "Blaze through the sky — dodge cliffs, snatch gems, beat your best run!",
-    path: "games/dragon-racers/",
-    tag: "Action",
-    engine: "local",
-    available: true,
-  },
-  {
     id: "hungry-snake-worm",
     title: "Snake.io",
     emoji: "🐍",
@@ -92,8 +82,17 @@ const BAP_ORIGINALS = [
     path: "games/mini-brawl-stars/",
     tag: "PvP",
     engine: "local",
-    available: false,
-    comingSoon: true,
+    available: true,
+  },
+  {
+    id: "ranked-battling",
+    title: "Ranked Battling",
+    emoji: "🏆",
+    description: "Climb from Rank E to SSS — battle rivals and earn RP!",
+    path: "games/ranked-battling/",
+    tag: "PvP",
+    engine: "local",
+    available: true,
   },
 ];
 
@@ -123,9 +122,9 @@ const ALLOUT_TITLE_OVERRIDES = {
 /** Emoji shown on hub play tiles (replaces thumbnail images). */
 const GAME_EMOJIS = {
   "dragon-plains": "🐉",
-  "dragon-racers": "🏁",
   "brawl-stars-mod": "⭐",
   "mini-brawl-stars": "💥",
+  "ranked-battling": "🏆",
   fishermon: "🎣",
   "murder-mystery": "🔪",
   "mob-battle": "⚔️",

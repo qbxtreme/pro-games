@@ -12,7 +12,7 @@ const EXISTING_FOLDERS = new Set([
   "raise-a-monster",
   "fat-simulator",
   "dragon-plains",
-  "dragon-racers",
+  "ranked-battling",
   "snake-io",
   "_all-out-explorer",
 ]);
@@ -312,6 +312,7 @@ function buildIndexHtml(game, config) {
   <link rel="stylesheet" href="../_all-out-explorer/style.css">
   <link rel="stylesheet" href="../../game-chat.css">
   <link rel="stylesheet" href="../../game-multiplayer.css">
+  <link rel="stylesheet" href="../../game-3d.css">
 </head>
 <body>
   <div id="app">
@@ -408,6 +409,10 @@ function buildIndexHtml(game, config) {
   <script src="config.js"></script>
   <script src="../_all-out-explorer/sprites.js"></script>
   <script src="../_all-out-explorer/engine.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../../game-3d-core.js"></script>
+  <script src="../../game-3d-adapters.js"></script>
+  <script src="../../game-3d-bridge.js"></script>
   <script src="../../game-chat.js"></script>
   <script src="../../game-multiplayer.js"></script>
   <script src="../_templates/base/game-mp-bootstrap.js"></script>
