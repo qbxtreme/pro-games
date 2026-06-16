@@ -30,11 +30,11 @@
     },
 
     "brawl-stars-mod"() {
-      return call(window.__brawl3D);
+      return null;
     },
 
     "mini-brawl-stars"() {
-      return call(window.__miniBrawl3D);
+      return null;
     },
 
     "mob-battle"() {

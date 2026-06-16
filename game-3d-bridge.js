@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const SKIP = new Set(["ranked-battling"]);
+  const SKIP = new Set(["ranked-battling", "brawl-stars-mod", "mini-brawl-stars"]);
 
   function gameId() {
     const m = location.pathname.match(/games\/([^/]+)/);

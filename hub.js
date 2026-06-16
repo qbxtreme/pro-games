@@ -94,6 +94,17 @@ const BAP_ORIGINALS = [
     engine: "local",
     available: true,
   },
+  {
+    id: "strength-simulator",
+    title: "Strength Simulator",
+    emoji: "💪",
+    description: "Lift weights, train hard, and become the strongest on the server!",
+    path: "games/strength-simulator/",
+    tag: "Multi",
+    engine: "local",
+    available: false,
+    comingSoon: true,
+  },
 ];
 
 /** Catalog games hidden from the main hub (played elsewhere). */
@@ -131,6 +142,7 @@ const GAME_EMOJIS = {
   "hungry-snake-worm": "🐍",
   "fat-simulator": "🐶",
   "raise-a-monster": "👾",
+  "strength-simulator": "💪",
 };
 
 const TAG_EMOJIS = {
