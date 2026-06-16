@@ -1644,41 +1644,4 @@
   } else {
     boot();
   }
-
-  window.__brainrot3D = function () {
-    if (!playing || battle) return null;
-    const zone = ZONES[state.zone] || ZONES[0];
-    const entities = mobs.map((m, i) => ({
-      id: m.id || `mob${i}`,
-      x: m.x,
-      y: m.y,
-      model: "mob",
-      color: m.color || "#66bb6a",
-      scale: 0.8 + (m.level || 1) * 0.04,
-    }));
-    if (boss) {
-      entities.push({
-        id: "boss",
-        x: boss.x,
-        y: boss.y,
-        model: "dragon",
-        color: "#ef5350",
-        scale: 1.4,
-      });
-    }
-    return {
-      worldW: WORLD_W,
-      worldH: WORLD_H,
-      ground: zone?.floor || "#7e57c2",
-      defaultModel: "mob",
-      player: {
-        x: player.x,
-        y: player.y,
-        facing: player.facing,
-        model: "trainer",
-        color: "#ab47bc",
-      },
-      entities,
-    };
-  };
 })();

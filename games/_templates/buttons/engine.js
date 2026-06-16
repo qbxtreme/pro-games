@@ -87,23 +87,4 @@
     if (C.branding?.title) { document.title = C.branding.title; $("game-title").textContent = C.branding.title; $("game-tagline").textContent = C.branding.description; }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-
-  window.__buttons3D = function () {
-    if (!playing) return null;
-    return {
-      worldW: 2000,
-      worldH: 2000,
-      ground: "#3949ab",
-      defaultModel: "trainer",
-      player: { x: 1000, y: 1000, model: "trainer", color: "#ffd54f" },
-      entities: buttons.filter((b) => b.pressed).slice(0, 24).map((b, i) => ({
-        id: `btn${b.id}`,
-        x: 400 + (i % 8) * 180,
-        y: 400 + Math.floor(i / 8) * 180,
-        model: "mob",
-        color: b.trap ? "#ef5350" : "#66bb6a",
-        scale: 0.6,
-      })),
-    };
-  };
 })();

@@ -1,14 +1,24 @@
 (function () {
   "use strict";
 
-  const MAP = 140;
-  const CORE = 38;
+  const RANKS = window.RankedRanks.RANKS;
+  const WORLD_MAP = 200;
+  const CORE = 54;
+  const WORLD_GAP = 60;
+  const WORLD_STEP = WORLD_MAP * 2 + WORLD_GAP;
+  const GRID_COLS = 7;
+  const GRID_ROWS = 6;
+  const SPAWN_RANK = window.RankedRanks.MAX_INDEX;
+  const MEGA_HALF_X = (GRID_COLS * WORLD_STEP) / 2;
+  const MEGA_HALF_Z = (GRID_ROWS * WORLD_STEP) / 2;
   const MOVE = 7.5;
   const ROLL_TIME = 0.45;
   const ROLL_CD = 2.2;
   const BURST_CD = 4.5;
   const ROAR_CD = 6;
   const DRAGON_RADIUS = 1.35;
+  const GIANT_SCALE = 2.65;
+  const PLAINS_QUADRANT_INSET = 8;
   const CAM_HEIGHT = 24;
   const CAM_DIST = 22;
 
@@ -17,8 +27,8 @@
   let colliders = [];
   let rivals = [];
   let biomeMeshes = [];
-  let waterMesh = null;
-  let volcanoGlow = null;
+  let waterMeshes = [];
+  let volcanoGlows = [];
   let animId = null;
   let running = false;
   let clock;
@@ -43,10 +53,18 @@
 
   function relocateRival(rival) {
     if (!rival || rival.userData.fled) return;
-    for (let i = 0; i < 12; i++) {
-      const x = (Math.random() - 0.5) * (MAP - 8);
-      const z = (Math.random() - 0.5) * (MAP - 8);
-      if (!dragon || dragon.position.distanceTo(new THREE.Vector3(x, 0, z)) > 10) {
+    const ox = rival.userData.worldOx ?? 0;
+    const oz = rival.userData.worldOz ?? 0;
+    for (let i = 0; i < 16; i++) {
+      let x;
+      let z;
+      if (rival.userData.giant && rival.userData.quadrantIndex != null) {
+        ({ x, z } = randomPointInQuadrant(ox, oz, rival.userData.quadrantIndex));
+      } else {
+        x = ox + (Math.random() - 0.5) * (WORLD_MAP - 8);
+        z = oz + (Math.random() - 0.5) * (WORLD_MAP - 8);
+      }
+      if (!dragon || dragon.position.distanceTo(new THREE.Vector3(x, 0, z)) > 12) {
         rival.position.set(x, 0, z);
         break;
       }
@@ -83,18 +101,120 @@
 
   let pendingBattleResult = null;
 
-  const goldMat = () =>
-    new THREE.MeshStandardMaterial({
+  function worldCenterForRank(rankIndex) {
+    const col = rankIndex % GRID_COLS;
+    const row = Math.floor(rankIndex / GRID_COLS);
+    return {
+      x: (col - (GRID_COLS - 1) / 2) * WORLD_STEP,
+      z: (row - (GRID_ROWS - 1) / 2) * WORLD_STEP,
+    };
+  }
+
+  function getWorldAt(x, z) {
+    for (let i = 0; i < RANKS.length; i++) {
+      const c = worldCenterForRank(i);
+      if (Math.abs(x - c.x) <= WORLD_MAP && Math.abs(z - c.z) <= WORLD_MAP) {
+        return {
+          rankIndex: i,
+          rank: RANKS[i],
+          lx: x - c.x,
+          lz: z - c.z,
+          ox: c.x,
+          oz: c.z,
+        };
+      }
+    }
+    return null;
+  }
+
+  function rankColor(rankIndex) {
+    return window.RankedRanks.rankColorIndex(rankIndex);
+  }
+
+  function makeRankSignTexture(rank) {
+    const c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.fillStyle = "#ffffff";
+    const fontSize = rank.length > 5 ? 28 : rank.length > 4 ? 34 : rank.length > 2 ? 48 : 80;
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(rank, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function addRankMonument(ox, oz, rankIndex) {
+    const rank = RANKS[rankIndex];
+    const color = rankColor(rankIndex);
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(4, 5, 14, 10),
+      new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.25,
+        metalness: 0.5,
+        roughness: 0.35,
+      })
+    );
+    pillar.position.set(ox, 7, oz);
+    pillar.castShadow = true;
+    scene.add(pillar);
+
+    const sign = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 10),
+      new THREE.MeshBasicMaterial({
+        map: makeRankSignTexture(rank),
+        transparent: true,
+        side: THREE.DoubleSide,
+      })
+    );
+    sign.position.set(ox, 16, oz);
+    scene.add(sign);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(7, 0.35, 8, 32),
+      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.35 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(ox, 0.15, oz);
+    scene.add(ring);
+  }
+
+  function buildMegaBase() {
+    addGroundPatch(
+      GRID_COLS * WORLD_STEP + 40,
+      GRID_ROWS * WORLD_STEP + 40,
+      0,
+      0,
+      0x455a64,
+      0.005
+    );
+  }
+
+  function buildCompleteRankWorld(ox, oz, rankIndex) {
+    buildWorldTerrain(ox, oz);
+    buildVolcanoLand(ox, oz);
+    buildFrostLand(ox, oz);
+    buildOcean(ox, oz);
+    buildSkyIslands(ox, oz);
+    scatterTrees(ox, oz);
+    scatterBushes(ox, oz);
+    spawnGiantRivalsForWorld(ox, oz, rankIndex);
+  }
+
+  function buildDivineDragon() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       emissive: 0xffaa22,
       emissiveIntensity: 0.35,
       metalness: 0.92,
       roughness: 0.18,
     });
-
-  function buildDivineDragon() {
-    const g = new THREE.Group();
-    const mat = goldMat();
     const hornMat = new THREE.MeshStandardMaterial({
       color: 0xfff8e1,
       emissive: 0xffffff,
@@ -168,22 +288,49 @@
     return g;
   }
 
-  function buildRivalDragon(color) {
-    const g = new THREE.Group();
-    const mat = new THREE.MeshStandardMaterial({
-      color,
-      metalness: 0.4,
-      roughness: 0.55,
-    });
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 10), mat);
-    body.scale.set(1.2, 0.75, 1.4);
-    body.position.y = 0.85;
-    body.castShadow = true;
-    g.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 8), mat);
-    head.position.set(0, 1.05, 0.85);
-    g.add(head);
+  function buildGiantRivalDragon() {
+    const g = buildDivineDragon();
+    g.scale.setScalar(GIANT_SCALE);
+    g.userData.baseScale = GIANT_SCALE;
     return g;
+  }
+
+  function plainsQuadrantCenters(ox, oz) {
+    const d = (CORE - PLAINS_QUADRANT_INSET) * 0.52;
+    return [
+      { x: ox + d, z: oz + d, quadrantIndex: 0 },
+      { x: ox - d, z: oz + d, quadrantIndex: 1 },
+      { x: ox + d, z: oz - d, quadrantIndex: 2 },
+      { x: ox - d, z: oz - d, quadrantIndex: 3 },
+    ];
+  }
+
+  function quadrantBounds(ox, oz, quadrantIndex) {
+    const edge = CORE - 3;
+    const path = PLAINS_QUADRANT_INSET;
+    if (quadrantIndex === 0) {
+      return { minX: ox + path, maxX: ox + edge, minZ: oz + path, maxZ: oz + edge };
+    }
+    if (quadrantIndex === 1) {
+      return { minX: ox - edge, maxX: ox - path, minZ: oz + path, maxZ: oz + edge };
+    }
+    if (quadrantIndex === 2) {
+      return { minX: ox + path, maxX: ox + edge, minZ: oz - edge, maxZ: oz - path };
+    }
+    return { minX: ox - edge, maxX: ox - path, minZ: oz - edge, maxZ: oz - path };
+  }
+
+  function randomPointInQuadrant(ox, oz, quadrantIndex) {
+    const b = quadrantBounds(ox, oz, quadrantIndex);
+    for (let i = 0; i < 16; i++) {
+      const x = b.minX + Math.random() * (b.maxX - b.minX);
+      const z = b.minZ + Math.random() * (b.maxZ - b.minZ);
+      if (!blockedAt(x, z)) return { x, z };
+    }
+    return {
+      x: (b.minX + b.maxX) / 2,
+      z: (b.minZ + b.maxZ) / 2,
+    };
   }
 
   function addCollider(x, z, radius) {
@@ -223,8 +370,8 @@
 
   function clampMap(x, z) {
     return {
-      x: Math.max(-MAP + 2, Math.min(MAP - 2, x)),
-      z: Math.max(-MAP + 2, Math.min(MAP - 2, z)),
+      x: Math.max(-MEGA_HALF_X + 2, Math.min(MEGA_HALF_X - 2, x)),
+      z: Math.max(-MEGA_HALF_Z + 2, Math.min(MEGA_HALF_Z - 2, z)),
     };
   }
 
@@ -240,36 +387,37 @@
     return mesh;
   }
 
-  function buildWorldTerrain() {
-    const full = MAP * 2;
-    addGroundPatch(full, full, 0, 0, 0x5a8f48);
+  function buildWorldTerrain(ox, oz) {
+    const full = WORLD_MAP * 2;
+    addGroundPatch(full, full, ox, oz, 0x5a8f48);
 
-    const band = MAP - CORE;
-    addGroundPatch(full, band, 0, CORE + band * 0.5, 0x4e342e, 0.02);
-    addGroundPatch(full, band, 0, -CORE - band * 0.5, 0xe8f4fc, 0.02);
-    addGroundPatch(band, full, CORE + band * 0.5, 0, 0x0288d1, 0.015);
-    addGroundPatch(band, full, -CORE - band * 0.5, 0, 0xc5cae9, 0.025);
+    const band = WORLD_MAP - CORE;
+    addGroundPatch(full, band, ox, oz + CORE + band * 0.5, 0x4e342e, 0.02);
+    addGroundPatch(full, band, ox, oz - CORE - band * 0.5, 0xe8f4fc, 0.02);
+    addGroundPatch(band, full, ox + CORE + band * 0.5, oz, 0x0288d1, 0.015);
+    addGroundPatch(band, full, ox - CORE - band * 0.5, oz, 0xc5cae9, 0.025);
 
-    addGroundPatch(full, 10, 0, CORE + 2, 0xc4a574, 0.03);
-    addGroundPatch(10, full, CORE + 2, 0, 0xc4a574, 0.03);
-    addGroundPatch(full, 10, 0, -CORE - 2, 0xdcedc8, 0.03);
-    addGroundPatch(10, full, -CORE - 2, 0, 0xdcedc8, 0.03);
+    addGroundPatch(full, 10, ox, oz + CORE + 2, 0xc4a574, 0.03);
+    addGroundPatch(10, full, ox + CORE + 2, oz, 0xc4a574, 0.03);
+    addGroundPatch(full, 10, ox, oz - CORE - 2, 0xdcedc8, 0.03);
+    addGroundPatch(10, full, ox - CORE - 2, oz, 0xdcedc8, 0.03);
 
     const path = new THREE.Mesh(
       new THREE.PlaneGeometry(10, CORE * 1.6),
       new THREE.MeshStandardMaterial({ color: 0xc4a574, roughness: 1 })
     );
     path.rotation.x = -Math.PI / 2;
-    path.position.y = 0.04;
+    path.position.set(ox, 0.04, oz);
     scene.add(path);
     const path2 = path.clone();
     path2.rotation.z = Math.PI / 2;
+    path2.position.set(ox, 0.04, oz);
     scene.add(path2);
   }
 
-  function buildVolcanoLand() {
+  function buildVolcanoLand(ox, oz) {
     const group = new THREE.Group();
-    const baseZ = CORE + (MAP - CORE) * 0.55;
+    const baseZ = CORE + (WORLD_MAP - CORE) * 0.55;
 
     const volcano = new THREE.Mesh(
       new THREE.ConeGeometry(18, 28, 16),
@@ -289,7 +437,6 @@
     );
     crater.position.set(0, 27, baseZ);
     group.add(crater);
-    volcanoGlow = crater;
 
     [[-22, baseZ - 18], [24, baseZ + 12], [-14, baseZ + 22], [18, baseZ - 8]].forEach(([x, z]) => {
       const lava = new THREE.Mesh(
@@ -312,24 +459,26 @@
         new THREE.MeshStandardMaterial({ color: 0x212121, roughness: 1 })
       );
       rock.position.set(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.6,
+        (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.6,
         0.6 + Math.random() * 1.5,
-        CORE + 8 + Math.random() * (MAP - CORE - 10)
+        CORE + 8 + Math.random() * (WORLD_MAP - CORE - 10)
       );
       rock.rotation.set(Math.random(), Math.random(), Math.random());
       rock.castShadow = true;
       group.add(rock);
-      addCollider(rock.position.x, rock.position.z, rockSize * 0.85);
+      addCollider(ox + rock.position.x, oz + rock.position.z, rockSize * 0.85);
     }
 
+    group.position.set(ox, 0, oz);
     scene.add(group);
     biomeMeshes.push(group);
-    addCollider(0, baseZ, 17);
+    addCollider(ox, oz + baseZ, 17);
+    volcanoGlows.push(crater);
   }
 
-  function buildFrostLand() {
+  function buildFrostLand(ox, oz) {
     const group = new THREE.Group();
-    const baseZ = -CORE - (MAP - CORE) * 0.5;
+    const baseZ = -CORE - (WORLD_MAP - CORE) * 0.5;
 
     for (let i = 0; i < 16; i++) {
       const mound = new THREE.Mesh(
@@ -338,9 +487,9 @@
       );
       mound.scale.y = 0.45;
       mound.position.set(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.7,
+        (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.7,
         0.4,
-        -CORE - 6 - Math.random() * (MAP - CORE - 8)
+        -CORE - 6 - Math.random() * (WORLD_MAP - CORE - 8)
       );
       mound.castShadow = true;
       group.add(mound);
@@ -358,9 +507,9 @@
         })
       );
       ice.position.set(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.4,
+        (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.4,
         1.5,
-        -CORE - 10 - Math.random() * (MAP - CORE - 12)
+        -CORE - 10 - Math.random() * (WORLD_MAP - CORE - 12)
       );
       group.add(ice);
     }
@@ -373,16 +522,17 @@
     glacier.castShadow = true;
     group.add(glacier);
 
+    group.position.set(ox, 0, oz);
     scene.add(group);
     biomeMeshes.push(group);
   }
 
-  function buildOcean() {
+  function buildOcean(ox, oz) {
     const group = new THREE.Group();
-    const centerX = CORE + (MAP - CORE) * 0.5;
+    const centerX = CORE + (WORLD_MAP - CORE) * 0.5;
 
-    waterMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(MAP - CORE + 4, MAP * 2, 24, 24),
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(WORLD_MAP - CORE + 4, WORLD_MAP * 2, 24, 24),
       new THREE.MeshStandardMaterial({
         color: 0x0277bd,
         transparent: true,
@@ -391,11 +541,12 @@
         metalness: 0.45,
       })
     );
-    waterMesh.rotation.x = -Math.PI / 2;
-    waterMesh.position.set(centerX, 0.08, 0);
-    group.add(waterMesh);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(centerX, 0.08, 0);
+    group.add(water);
+    waterMeshes.push(water);
 
-    addGroundPatch(MAP - CORE, 14, centerX - 6, 0, 0xf5deb3, 0.05);
+    addGroundPatch(WORLD_MAP - CORE, 14, ox + centerX - 6, oz, 0xf5deb3, 0.05);
 
     for (let i = 0; i < 5; i++) {
       const island = new THREE.Mesh(
@@ -403,9 +554,9 @@
         new THREE.MeshStandardMaterial({ color: 0x8d6e63, roughness: 0.9 })
       );
       island.position.set(
-        CORE + 18 + Math.random() * (MAP - CORE - 22),
+        CORE + 18 + Math.random() * (WORLD_MAP - CORE - 22),
         0.5,
-        (Math.random() - 0.5) * (MAP - 20)
+        (Math.random() - 0.5) * (WORLD_MAP - 20)
       );
       island.receiveShadow = true;
       group.add(island);
@@ -416,17 +567,18 @@
       palm.position.copy(island.position);
       palm.position.y += 1.8;
       group.add(palm);
-      addCollider(island.position.x, island.position.z, island.geometry.parameters.radiusTop + 1);
-      addCollider(palm.position.x, palm.position.z, 0.9);
+      addCollider(ox + island.position.x, oz + island.position.z, island.geometry.parameters.radiusTop + 1);
+      addCollider(ox + palm.position.x, oz + palm.position.z, 0.9);
     }
 
+    group.position.set(ox, 0, oz);
     scene.add(group);
     biomeMeshes.push(group);
   }
 
-  function buildSkyIslands() {
+  function buildSkyIslands(ox, oz) {
     const group = new THREE.Group();
-    const centerX = -CORE - (MAP - CORE) * 0.5;
+    const centerX = -CORE - (WORLD_MAP - CORE) * 0.5;
 
     for (let i = 0; i < 8; i++) {
       const cloud = new THREE.Mesh(
@@ -434,15 +586,18 @@
         new THREE.MeshStandardMaterial({
           color: 0xffffff,
           transparent: true,
-          opacity: 0.55,
+          opacity: 0.28,
           roughness: 1,
+          depthWrite: false,
         })
       );
+      cloud.renderOrder = -5;
+      cloud.raycast = () => {};
       cloud.scale.set(1.6, 0.55, 1.1);
       cloud.position.set(
-        -CORE - 10 - Math.random() * (MAP - CORE - 12),
-        6 + Math.random() * 10,
-        (Math.random() - 0.5) * MAP * 1.4
+        -CORE - 10 - Math.random() * (WORLD_MAP - CORE - 12),
+        34 + Math.random() * 18,
+        (Math.random() - 0.5) * WORLD_MAP * 1.4
       );
       group.add(cloud);
     }
@@ -493,6 +648,7 @@
     bridge.castShadow = true;
     group.add(bridge);
 
+    group.position.set(ox, 0, oz);
     scene.add(group);
     biomeMeshes.push(group);
   }
@@ -530,71 +686,95 @@
     return g;
   }
 
-  function scatterTrees() {
+  function scatterTrees(ox, oz) {
+    const quadCenters = plainsQuadrantCenters(ox, oz);
+    const nearGiant = (x, z) => quadCenters.some((q) => Math.hypot(x - q.x, z - q.z) < 20);
     for (let i = 0; i < 28; i++) {
-      const x = (Math.random() - 0.5) * CORE * 1.7;
-      const z = (Math.random() - 0.5) * CORE * 1.7;
-      if (Math.hypot(x, z) < 8) continue;
+      const x = ox + (Math.random() - 0.5) * CORE * 1.7;
+      const z = oz + (Math.random() - 0.5) * CORE * 1.7;
+      if (Math.hypot(x - ox, z - oz) < 8 || nearGiant(x, z)) continue;
       addTree(x, z, 0.85 + Math.random() * 0.55);
     }
     for (let i = 0; i < 10; i++) {
       addTree(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.2,
-        CORE + 14 + Math.random() * (MAP - CORE - 20),
+        ox + (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.2,
+        oz + CORE + 14 + Math.random() * (WORLD_MAP - CORE - 20),
         0.75 + Math.random() * 0.35
       );
     }
     for (let i = 0; i < 10; i++) {
       addTree(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.2,
-        -CORE - 14 - Math.random() * (MAP - CORE - 20),
+        ox + (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.2,
+        oz - CORE - 14 - Math.random() * (WORLD_MAP - CORE - 20),
         0.75 + Math.random() * 0.35
       );
     }
   }
 
-  function scatterBushes() {
+  function scatterBushes(ox, oz) {
+    const quadCenters = plainsQuadrantCenters(ox, oz);
+    const nearGiant = (x, z) => quadCenters.some((q) => Math.hypot(x - q.x, z - q.z) < 18);
     for (let i = 0; i < 40; i++) {
-      const x = (Math.random() - 0.5) * CORE * 1.8;
-      const z = (Math.random() - 0.5) * CORE * 1.8;
+      const x = ox + (Math.random() - 0.5) * CORE * 1.8;
+      const z = oz + (Math.random() - 0.5) * CORE * 1.8;
+      if (nearGiant(x, z)) continue;
       addBush(x, z, 1.8 + Math.random() * 2.2);
     }
     for (let i = 0; i < 8; i++) {
       addBush(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.2,
-        CORE + 10 + Math.random() * (MAP - CORE - 14),
+        ox + (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.2,
+        oz + CORE + 10 + Math.random() * (WORLD_MAP - CORE - 14),
         1.4 + Math.random() * 1.2
       );
     }
     for (let i = 0; i < 8; i++) {
       addBush(
-        (Math.random() - 0.5) * (MAP - CORE) * 1.2,
-        -CORE - 10 - Math.random() * (MAP - CORE - 14),
+        ox + (Math.random() - 0.5) * (WORLD_MAP - CORE) * 1.2,
+        oz - CORE - 10 - Math.random() * (WORLD_MAP - CORE - 14),
         1.2 + Math.random() * 1
       );
     }
   }
 
   function getBiome(x, z) {
-    if (z > CORE) return "volcano";
-    if (z < -CORE) return "frost";
-    if (x > CORE) return "ocean";
-    if (x < -CORE) return "sky";
+    const w = getWorldAt(x, z);
+    if (!w) return "travel";
+    const { lx, lz } = w;
+    if (lz > CORE) return "volcano";
+    if (lz < -CORE) return "frost";
+    if (lx > CORE) return "ocean";
+    if (lx < -CORE) return "sky";
     return "plains";
   }
 
   function updateBiomeFeel() {
     if (!dragon || !scene) return;
     const biome = getBiome(dragon.position.x, dragon.position.z);
+    const world = getWorldAt(dragon.position.x, dragon.position.z);
     const labels = {
       volcano: "🌋 Volcano Land",
       frost: "❄️ Frost Land",
       ocean: "🌊 Ocean",
       sky: "☁️ Sky Island",
       plains: "🌿 Dragon Plains",
+      travel: "🗺️ Between Worlds",
     };
+    const worldTag = world ? ` · ${world.rank} Rank World` : "";
     const hint = document.getElementById("biome-hint");
-    if (hint) hint.textContent = labels[biome] || labels.plains;
+    if (hint) hint.textContent = (labels[biome] || labels.plains) + worldTag;
+
+    const worldLabel = document.getElementById("world-rank-label");
+    if (worldLabel) {
+      worldLabel.textContent = world ? `${world.rank} World` : "Between Worlds";
+      worldLabel.className = "world-rank-label" + (world ? ` rank-${world.rank}` : "");
+    }
+
+    const playerRankEl = document.getElementById("player-rank-label");
+    if (playerRankEl && callbacks.playerRankIndex != null) {
+      const pr = RANKS[callbacks.playerRankIndex] || RANKS[0];
+      playerRankEl.textContent = `Your rank: ${pr}`;
+      playerRankEl.className = "player-rank-label rank-" + pr;
+    }
 
     if (biome === "volcano") {
       scene.background.set(0x4e342e);
@@ -613,12 +793,12 @@
       scene.fog.color.set(0x87ceeb);
     }
 
-    if (waterMesh) {
-      waterMesh.position.y = 0.08 + Math.sin(tick * 1.6) * 0.06;
-    }
-    if (volcanoGlow) {
-      volcanoGlow.material.emissiveIntensity = 0.65 + Math.sin(tick * 3) * 0.25;
-    }
+    waterMeshes.forEach((wm) => {
+      wm.position.y = 0.08 + Math.sin(tick * 1.6) * 0.06;
+    });
+    volcanoGlows.forEach((g) => {
+      g.material.emissiveIntensity = 0.65 + Math.sin(tick * 3) * 0.25;
+    });
   }
 
   function addBush(x, z, size) {
@@ -638,18 +818,21 @@
     bushes.push(g);
   }
 
-  function createRival(x, z) {
-    const colors = [0xef5350, 0x42a5f5, 0x66bb6a, 0xab47bc, 0xff9800];
+  function createGiantRival(x, z, rankIndex, ox, oz, quadrantIndex) {
+    const rank = RANKS[rankIndex];
     const elements = ["fire", "water", "earth", "air"];
-    const mesh = buildRivalDragon(colors[Math.floor(Math.random() * colors.length)]);
+    const mesh = buildGiantRivalDragon();
     mesh.position.set(x, 0, z);
-    mesh.userData.vx = (Math.random() - 0.5) * 2;
-    mesh.userData.vz = (Math.random() - 0.5) * 2;
-    mesh.userData.name = ["Blaze", "Torrent", "Gale", "Shadow", "Storm", "Ember", "Frost"][
-      Math.floor(Math.random() * 7)
-    ];
-    mesh.userData.rankIndex = Math.floor(Math.random() * 8);
-    mesh.userData.element = elements[Math.floor(Math.random() * elements.length)];
+    mesh.userData.vx = (Math.random() - 0.5) * 0.9;
+    mesh.userData.vz = (Math.random() - 0.5) * 0.9;
+    const names = window.RankedRanks.giantNames(rank);
+    mesh.userData.name = names[quadrantIndex] || `${rank}-Giant`;
+    mesh.userData.rankIndex = rankIndex;
+    mesh.userData.worldOx = ox;
+    mesh.userData.worldOz = oz;
+    mesh.userData.quadrantIndex = quadrantIndex;
+    mesh.userData.giant = true;
+    mesh.userData.element = elements[quadrantIndex % elements.length];
     mesh.userData.stunned = 0;
     mesh.userData.revealed = 0;
     scene.add(mesh);
@@ -657,26 +840,38 @@
     return mesh;
   }
 
-  function spawnRivals(count) {
-    const zones = [
-      () => ({ x: (Math.random() - 0.5) * CORE * 1.6, z: (Math.random() - 0.5) * CORE * 1.6 }),
-      () => ({ x: (Math.random() - 0.5) * (MAP - CORE), z: CORE + 12 + Math.random() * (MAP - CORE - 16) }),
-      () => ({ x: (Math.random() - 0.5) * (MAP - CORE), z: -CORE - 12 - Math.random() * (MAP - CORE - 16) }),
-      () => ({ x: CORE + 12 + Math.random() * (MAP - CORE - 16), z: (Math.random() - 0.5) * (MAP - CORE) }),
-      () => ({ x: -CORE - 12 - Math.random() * (MAP - CORE - 16), z: (Math.random() - 0.5) * (MAP - CORE) }),
-    ];
-    for (let i = 0; i < count; i++) {
-      const pos = zones[i % zones.length]();
-      createRival(pos.x, pos.z);
+  function spawnGiantRivalsForWorld(ox, oz, rankIndex) {
+    plainsQuadrantCenters(ox, oz).forEach(({ x, z, quadrantIndex }) => {
+      createGiantRival(x, z, rankIndex, ox, oz, quadrantIndex);
+    });
+  }
+
+  function rivalBounds(rival) {
+    const ox = rival.userData.worldOx ?? 0;
+    const oz = rival.userData.worldOz ?? 0;
+    if (rival.userData.giant && rival.userData.quadrantIndex != null) {
+      return quadrantBounds(ox, oz, rival.userData.quadrantIndex);
     }
+    return {
+      minX: ox - WORLD_MAP + 3,
+      maxX: ox + WORLD_MAP - 3,
+      minZ: oz - WORLD_MAP + 3,
+      maxZ: oz + WORLD_MAP - 3,
+    };
+  }
+
+  function goToRankWorld(rankIndex) {
+    if (!dragon) return;
+    const c = worldCenterForRank(rankIndex);
+    dragon.position.set(c.x, 0, c.z);
   }
 
   function initScene(container) {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87ceeb);
-    scene.fog = new THREE.Fog(0x87ceeb, 70, 340);
+    scene.fog = new THREE.Fog(0x87ceeb, 260, 1700);
 
-    camera = new THREE.PerspectiveCamera(55, 1, 0.1, 450);
+    camera = new THREE.PerspectiveCamera(55, 1, 0.1, 4000);
     camera.position.set(0, CAM_HEIGHT, CAM_DIST);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -691,27 +886,25 @@
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 320;
-    sun.shadow.camera.left = -MAP;
-    sun.shadow.camera.right = MAP;
-    sun.shadow.camera.top = MAP;
-    sun.shadow.camera.bottom = -MAP;
+    sun.shadow.camera.far = 2800;
+    sun.shadow.camera.left = -MEGA_HALF_X;
+    sun.shadow.camera.right = MEGA_HALF_X;
+    sun.shadow.camera.top = MEGA_HALF_Z;
+    sun.shadow.camera.bottom = -MEGA_HALF_Z;
     scene.add(sun);
 
-    buildWorldTerrain();
-    buildVolcanoLand();
-    buildFrostLand();
-    buildOcean();
-    buildSkyIslands();
-    scatterTrees();
-    scatterBushes();
+    buildMegaBase();
+    for (let i = 0; i < RANKS.length; i++) {
+      const c = worldCenterForRank(i);
+      buildCompleteRankWorld(c.x, c.z, i);
+    }
 
+    const spawn = worldCenterForRank(0);
     dragonGroup = buildDivineDragon();
-    dragonGroup.position.set(0, 0, 0);
+    dragonGroup.position.set(spawn.x, 0, spawn.z);
     scene.add(dragonGroup);
     dragon = dragonGroup;
 
-    spawnRivals(14);
     clock = new THREE.Clock();
   }
 
@@ -756,7 +949,21 @@
   function doBurst() {
     if (burstCd > 0 || callbacks._busy || !dragon) return;
     burstCd = BURST_CD;
-    const rival = createRival(dragon.position.x, dragon.position.z);
+    const world = getWorldAt(dragon.position.x, dragon.position.z);
+    const rankIndex = world?.rankIndex ?? SPAWN_RANK;
+    const ox = world?.ox ?? dragon.position.x;
+    const oz = world?.oz ?? dragon.position.z;
+    const quadrantIndex = world
+      ? (world.lx >= 0 ? (world.lz >= 0 ? 0 : 2) : (world.lz >= 0 ? 1 : 3))
+      : 0;
+    const rival = createGiantRival(
+      dragon.position.x,
+      dragon.position.z,
+      rankIndex,
+      ox,
+      oz,
+      quadrantIndex
+    );
     rival.position.set(dragon.position.x, 0, dragon.position.z);
     rival.userData.vx = 0;
     rival.userData.vz = 0;
@@ -785,7 +992,7 @@
       r.userData.vz = 0;
       r.userData.stunned = 0;
       r.userData.revealed = 0;
-      r.scale.setScalar(1);
+      r.scale.setScalar(r.userData.baseScale || 1);
       r.rotation.y = Math.atan2(dragon.position.x - r.position.x, dragon.position.z - r.position.z);
     });
     showWorldToast("👑 Golden Roar — rivals rush to you!");
@@ -853,13 +1060,14 @@
     });
 
     rivals.forEach((r) => {
+      const bounds = rivalBounds(r);
       if (r.userData.fled) {
         if (r.userData.fleeTimer > 0) {
           r.userData.fleeTimer -= dt;
           r.position.x += (r.userData.fleeVx || 0) * dt;
           r.position.z += (r.userData.fleeVz || 0) * dt;
-          r.position.x = Math.max(-MAP + 3, Math.min(MAP - 3, r.position.x));
-          r.position.z = Math.max(-MAP + 3, Math.min(MAP - 3, r.position.z));
+          r.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, r.position.x));
+          r.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, r.position.z));
           r.rotation.y = Math.atan2(r.userData.fleeVx, r.userData.fleeVz);
         }
         return;
@@ -870,19 +1078,21 @@
       }
       r.position.x += r.userData.vx * dt;
       r.position.z += r.userData.vz * dt;
-      if (Math.abs(r.position.x) > MAP - 3) r.userData.vx *= -1;
-      if (Math.abs(r.position.z) > MAP - 3) r.userData.vz *= -1;
+      if (r.position.x < bounds.minX || r.position.x > bounds.maxX) r.userData.vx *= -1;
+      if (r.position.z < bounds.minZ || r.position.z > bounds.maxZ) r.userData.vz *= -1;
       r.rotation.y = Math.atan2(r.userData.vx, r.userData.vz);
       if (r.userData.revealed > 0) {
         r.userData.revealed -= dt;
-        r.scale.setScalar(1 + Math.sin(tick * 10) * 0.08);
+        const base = r.userData.baseScale || 1;
+        r.scale.setScalar(base * (1 + Math.sin(tick * 10) * 0.08));
       } else {
-        r.scale.setScalar(1);
+        r.scale.setScalar(r.userData.baseScale || 1);
       }
+      const encounterDist = r.userData.giant ? 5.5 : 2.2;
       if (
         encounterCooldown <= 0 &&
         !r.userData.fled &&
-        dragon.position.distanceTo(r.position) < 2.2 &&
+        dragon.position.distanceTo(r.position) < encounterDist &&
         callbacks.onEncounter &&
         !callbacks._busy
       ) {
@@ -955,6 +1165,9 @@
       callbacks = cb || {};
       const container = document.getElementById("world3d");
       if (!scene && container) initScene(container);
+      if (callbacks.playerRankIndex != null) {
+        goToRankWorld(callbacks.playerRankIndex);
+      }
       running = true;
       if (clock) clock.getDelta();
       resize();
@@ -992,6 +1205,13 @@
     },
     onBattleEnd(result) {
       pendingBattleResult = result || null;
+    },
+    goToPlayerRank(rankIndex) {
+      callbacks.playerRankIndex = window.RankedRanks.clampRankIndex(rankIndex);
+      goToRankWorld(callbacks.playerRankIndex);
+    },
+    syncPlayerRank(rankIndex) {
+      callbacks.playerRankIndex = window.RankedRanks.clampRankIndex(rankIndex);
     },
     resize,
     bindControls,

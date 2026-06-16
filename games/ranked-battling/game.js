@@ -2,8 +2,9 @@
   "use strict";
 
   const SAVE_KEY = "ranked-battling";
-  const RANKS = ["E", "D", "C", "B", "A", "S", "SS", "SSS"];
-  const XP_PER_RANK = 500;
+  const RANKS = window.RankedRanks.RANKS;
+  const PEAK_RANK = window.RankedRanks.PEAK;
+  const xpToNextRank = window.RankedRanks.xpToNextRank;
   const ELEMENTS = ["fire", "water", "earth", "air"];
   const ELEMENT_BEATS = { fire: "earth", earth: "air", air: "water", water: "fire" };
 
@@ -32,6 +33,7 @@
       xp: 0,
       wins: 0,
       losses: 0,
+      saveVersion: window.RankedRanks.SAVE_VERSION,
     };
   }
 
@@ -44,13 +46,23 @@
         parsed.dragonName = "Divine Gold";
         parsed.element = "divine";
         parsed.tier = "divine";
-        return { ...defaultState(), ...parsed };
+        const prevVersion = parsed.saveVersion ?? 1;
+        window.RankedRanks.migrateLegacySave(parsed);
+        const merged = { ...defaultState(), ...parsed };
+        if (prevVersion < window.RankedRanks.SAVE_VERSION) {
+          merged.saveVersion = window.RankedRanks.SAVE_VERSION;
+          merged.rankIndex = window.RankedRanks.clampRankIndex(merged.rankIndex);
+          localStorage.setItem(SAVE_KEY, JSON.stringify(merged));
+        }
+        return merged;
       }
     } catch (_) {}
     return defaultState();
   }
 
   function saveState() {
+    state.saveVersion = window.RankedRanks.SAVE_VERSION;
+    state.rankIndex = window.RankedRanks.clampRankIndex(state.rankIndex);
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   }
 
@@ -126,9 +138,10 @@
     updateBigRankDisplay();
     const rank = currentRank();
     const xpEl = document.getElementById("rank-xp-display");
+    const nextXp = xpToNextRank(state.rankIndex);
     const xpText = state.rankIndex >= RANKS.length - 1
       ? "MAX RANK"
-      : `${state.xp} / ${XP_PER_RANK} XP`;
+      : `${state.xp} / ${nextXp} XP`;
     if (xpEl) xpEl.textContent = xpText;
     const hudRank = document.getElementById("hud-rank-badge");
     const hudXp = document.getElementById("hud-xp-text");
@@ -137,6 +150,9 @@
       hudRank.className = "hud-rank-badge rank-" + rank;
     }
     if (hudXp) hudXp.textContent = xpText;
+    if (inWorld && RankedWorld.syncPlayerRank) {
+      RankedWorld.syncPlayerRank(state.rankIndex);
+    }
   }
 
   function enterWorld() {
@@ -150,6 +166,7 @@
     RankedWorld.bindControls();
     RankedWorld.start({
       _busy: false,
+      playerRankIndex: state.rankIndex,
       onEncounter(rival) {
         startBattle(rival);
       },
@@ -271,8 +288,10 @@
 
     if (state.rankIndex < RANKS.length - 1) {
       state.xp = Math.max(0, state.xp + xpChange);
-      while (state.xp >= XP_PER_RANK && state.rankIndex < RANKS.length - 1) {
-        state.xp -= XP_PER_RANK;
+      while (state.rankIndex < RANKS.length - 1) {
+        const need = xpToNextRank(state.rankIndex);
+        if (state.xp < need) break;
+        state.xp -= need;
         state.rankIndex += 1;
         rankedUp = true;
       }
@@ -298,7 +317,7 @@
     const title = document.getElementById("result-title");
     const msg = document.getElementById("result-msg");
     const rankUpEl = document.getElementById("rank-up-msg");
-    const nextXp = XP_PER_RANK;
+    const nextXp = xpToNextRank(state.rankIndex);
 
     if (forfeited) {
       title.textContent = "Forfeit";
@@ -320,11 +339,14 @@
 
     if (state.rankIndex >= RANKS.length - 1) {
       msg.textContent = won
-        ? `+${Math.max(xpChange, 0)} XP! You are at the peak — Rank SSS!`
-        : `Rank ${currentRank()} — SSS!`;
+        ? `+${Math.max(xpChange, 0)} XP! You are at the peak — Rank ${PEAK_RANK}!`
+        : `Rank ${currentRank()} — ${PEAK_RANK}!`;
     }
 
     renderHud();
+    if (rankedUp && inWorld && RankedWorld.goToPlayerRank) {
+      RankedWorld.goToPlayerRank(state.rankIndex);
+    }
   }
 
   function playerAttack(special) {

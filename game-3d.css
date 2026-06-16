@@ -5,6 +5,16 @@
   pointer-events: none;
 }
 
+#app.game-3d-active .world-wrap .joystick-wrap,
+#app.game-3d-active .world-wrap .action-float,
+#app.game-3d-active .world-wrap .world-hotbar,
+#app.game-3d-active #game-wrap .joystick-wrap,
+#app.game-3d-active #game-wrap .ability-dock,
+#app.game-3d-active #game-wrap .world-hud {
+  z-index: 10;
+  pointer-events: auto;
+}
+
 #game3d-layer canvas {
   display: block;
   width: 100%;

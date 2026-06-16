@@ -1094,33 +1094,36 @@ body {
   z-index: 115;
 }
 
-.math-olympiad-btn {
-  display: block;
+.hub-update-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 14px 16px;
-  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
-  border: none;
-  border-top: 3px solid rgba(255, 255, 255, 0.35);
-  border-radius: 0;
-  background: linear-gradient(180deg, #5c6bc0 0%, #3949ab 55%, #283593 100%);
+  padding: 18px 20px;
+  padding-bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  border-top: 3px solid rgba(255, 255, 255, 0.4);
+  background: linear-gradient(180deg, #ff6f00 0%, #e65100 50%, #bf360c 100%);
   color: #fff;
-  font-family: inherit;
-  font-size: 1.05rem;
-  font-weight: bold;
   text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.28);
-  transition: background 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.32);
 }
 
-.math-olympiad-btn:hover {
-  color: #fff;
-  filter: brightness(1.08);
+.hub-update-label {
+  margin: 0;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-.math-olympiad-btn:active {
-  filter: brightness(0.94);
+.hub-update-version {
+  margin: 6px 0 0;
+  font-size: clamp(1.15rem, 4vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.95;
 }
 
 @media (max-width: 520px) {

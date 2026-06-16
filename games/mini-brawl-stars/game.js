@@ -5936,28 +5936,4 @@
     window.history.replaceState({}, "", window.location.pathname);
   }
   showMainMenu();
-
-  window.__miniBrawl3D = function () {
-    if (!playing || !player) return null;
-    return {
-      worldW: ARENA_W || 3200,
-      worldH: ARENA_H || 2800,
-      ground: "#7cb342",
-      defaultModel: "brawler",
-      player: {
-        x: player.x,
-        y: player.y,
-        rot: player.angle || 0,
-        model: "brawler",
-        color: player.color || "#42a5f5",
-      },
-      entities: bots.filter((b) => b.alive !== false).map((b, i) => ({
-        id: b.id || `bot${i}`,
-        x: b.x,
-        y: b.y,
-        model: "brawler",
-        color: b.color || "#ef5350",
-      })),
-    };
-  };
 })();

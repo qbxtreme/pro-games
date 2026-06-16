@@ -1208,28 +1208,3 @@ function renderForest() {
   if (!canvas) initWorld();
   resizeCanvas();
 }
-
-window.getGame3DState = function () {
-  if (typeof state === "undefined" || !document.body.classList.contains("world-play-mode")) return null;
-  const mapW = MAP_SIZE * TILE;
-  const mapH = MAP_SIZE * TILE;
-  return {
-    worldW: mapW,
-    worldH: mapH,
-    ground: "#5a8f48",
-    defaultModel: "dragon",
-    player: {
-      x: (state.playerFx ?? state.playerX) * TILE,
-      y: (state.playerFy ?? state.playerY) * TILE,
-      model: "dragon",
-      color: "#ffd700",
-    },
-    entities: (state.mobs || []).map((m, i) => ({
-      id: m.id || `mob${i}`,
-      x: m.x * TILE,
-      y: m.y * TILE,
-      model: "mob",
-      color: "#ef5350",
-    })),
-  };
-};

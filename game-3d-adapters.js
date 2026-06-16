@@ -65,10 +65,6 @@
       return call(window.__buttons3D);
     },
 
-    "math-olympiad"() {
-      return call(window.__mathOlympiad3D);
-    },
-
     generic(id) {
       const fn = window[`__${id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())}3D`];
       if (fn) return call(fn);
@@ -77,10 +73,6 @@
       const app = document.getElementById("app");
       if (app?.classList.contains("playing")) {
         return ambientState("#7cb342", "trainer", "#ef5350");
-      }
-      const moPlay = document.getElementById("mo-play");
-      if (moPlay && !moPlay.classList.contains("hidden")) {
-        return ambientState("#1565c0", "dragon", "#ffd700");
       }
       return null;
     },

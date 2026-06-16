@@ -1129,30 +1129,4 @@
   }
 
   init();
-
-  window.__raiseMonster3D = function () {
-    if (!playing || battle) return null;
-    const zone = ZONES[state.zone] || ZONES[0];
-    return {
-      worldW: 2600,
-      worldH: 1800,
-      ground: zone.floor || "#7e57c2",
-      defaultModel: "mob",
-      player: {
-        x: player.x,
-        y: player.y,
-        facing: player.facing,
-        model: "trainer",
-        color: "#ab47bc",
-      },
-      entities: mobs.map((m, i) => ({
-        id: m.id || `mob${i}`,
-        x: m.x,
-        y: m.y,
-        model: "mob",
-        color: m.color || "#66bb6a",
-        scale: 0.8 + (m.level || 1) * 0.04,
-      })),
-    };
-  };
 })();

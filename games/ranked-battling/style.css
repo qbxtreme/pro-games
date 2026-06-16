@@ -156,17 +156,33 @@ body {
 .big-rank.rank-C { color: #a5d6a7; }
 .big-rank.rank-B { color: #90caf9; }
 .big-rank.rank-A { color: #ce93d8; }
-.big-rank.rank-S { color: #ffd54f; }
-.big-rank.rank-SS {
-  color: #ffb74d;
-  font-size: clamp(6rem, 34vw, 12rem);
+.big-rank.rank-S {
+  color: #ffd54f;
+  font-size: clamp(5rem, 28vw, 10rem);
 }
-.big-rank.rank-SSS {
-  background: linear-gradient(180deg, #ffd54f 0%, #ff5722 100%);
+
+.big-rank[class*="rank-S-"] {
+  font-size: clamp(2.4rem, 16vw, 5.5rem);
+  color: #ffb74d;
+}
+
+.big-rank.rank-S-S-S,
+.big-rank[class^="rank-SSS"] {
+  font-size: clamp(2rem, 14vw, 4.5rem);
+  color: #ffb74d;
+}
+
+.big-rank.rank-SSSS {
+  font-size: clamp(1.8rem, 12vw, 4rem);
+  color: #ffb74d;
+}
+
+.big-rank.rank-SSSSS {
+  background: linear-gradient(180deg, #ffffff 0%, #d500f9 40%, #ffd54f 70%, #ff5722 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-size: clamp(5rem, 28vw, 10rem);
+  font-size: clamp(1.5rem, 10vw, 3.5rem);
 }
 
 .panel {
@@ -357,8 +373,48 @@ body {
 .rank-B { background: #42a5f5; }
 .rank-A { background: #ab47bc; }
 .rank-S { background: #ffc107; color: #4e342e; }
-.rank-SS { background: linear-gradient(135deg, #ff9800, #ffc107); }
-.rank-SSS { background: linear-gradient(135deg, #ff5722, #ffd54f); font-size: 0.75rem; }
+
+.rank-S-E, .rank-S-D, .rank-S-F, .rank-S-C, .rank-S-B, .rank-S-A, .rank-S-S {
+  background: linear-gradient(135deg, #ffb300, #ff8f00);
+  color: #4e342e;
+  font-size: 0.72rem;
+}
+
+.rank-S-S-E, .rank-S-S-D, .rank-S-S-F, .rank-S-S-C, .rank-S-S-B, .rank-S-S-A {
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+  font-size: 0.68rem;
+}
+
+.rank-S-S-S {
+  background: linear-gradient(135deg, #ff5722, #ffd54f);
+  font-size: 0.62rem;
+}
+
+.rank-SSS-E, .rank-SSS-D, .rank-SSS-F, .rank-SSS-C, .rank-SSS-B, .rank-SSS-A, .rank-SSS-S {
+  background: linear-gradient(135deg, #ff7043, #ff5722);
+  font-size: 0.66rem;
+}
+
+.rank-SSSE, .rank-SSSD, .rank-SSSF, .rank-SSSC, .rank-SSSB, .rank-SSSA {
+  background: linear-gradient(135deg, #ff5722, #e91e63);
+  font-size: 0.64rem;
+}
+
+.rank-SSSS {
+  background: linear-gradient(135deg, #d500f9, #ffd54f, #ff5722);
+  font-size: 0.58rem;
+}
+
+.rank-SSSSE, .rank-SSSSD, .rank-SSSSF, .rank-SSSSC, .rank-SSSSB, .rank-SSSSA {
+  background: linear-gradient(135deg, #e040fb, #d500f9);
+  font-size: 0.56rem;
+}
+
+.rank-SSSSS {
+  background: linear-gradient(135deg, #ffffff, #ffd54f, #d500f9, #ff5722);
+  font-size: 0.52rem;
+  color: #4e342e;
+}
 
 .hp-wrap {
   width: 100%;
@@ -552,6 +608,104 @@ body {
   font-size: 0.8rem;
   font-weight: bold;
   letter-spacing: 0.02em;
+}
+
+.world-rank-label {
+  position: absolute;
+  top: max(132px, calc(env(safe-area-inset-top) + 126px));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  opacity: 0.92;
+}
+
+.player-rank-label {
+  position: absolute;
+  top: max(168px, calc(env(safe-area-inset-top) + 162px));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.04em;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+}
+
+.world-rank-label.rank-E { background: linear-gradient(135deg, #78909c, #546e7a); }
+.world-rank-label.rank-D { background: linear-gradient(135deg, #8d6e63, #6d4c41); }
+.world-rank-label.rank-C { background: linear-gradient(135deg, #66bb6a, #388e3c); }
+.world-rank-label.rank-B { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+.world-rank-label.rank-A { background: linear-gradient(135deg, #ab47bc, #7b1fa2); }
+.world-rank-label.rank-S { background: linear-gradient(135deg, #ffc107, #ff8f00); }
+.world-rank-label.rank-S { background: linear-gradient(135deg, #ffc107, #ff8f00); color: #4e342e; }
+
+.world-rank-label.rank-S-E,
+.world-rank-label.rank-S-D,
+.world-rank-label.rank-S-F,
+.world-rank-label.rank-S-C,
+.world-rank-label.rank-S-B,
+.world-rank-label.rank-S-A,
+.world-rank-label.rank-S-S {
+  background: linear-gradient(135deg, #ffb300, #ff8f00);
+}
+
+.world-rank-label.rank-S-S-E,
+.world-rank-label.rank-S-S-D,
+.world-rank-label.rank-S-S-F,
+.world-rank-label.rank-S-S-C,
+.world-rank-label.rank-S-S-B,
+.world-rank-label.rank-S-S-A {
+  background: linear-gradient(135deg, #ff9800, #e65100);
+}
+
+.world-rank-label.rank-S-S-S {
+  background: linear-gradient(135deg, #ff5722, #bf360c);
+}
+
+.world-rank-label.rank-SSS-E,
+.world-rank-label.rank-SSS-D,
+.world-rank-label.rank-SSS-F,
+.world-rank-label.rank-SSS-C,
+.world-rank-label.rank-SSS-B,
+.world-rank-label.rank-SSS-A,
+.world-rank-label.rank-SSS-S {
+  background: linear-gradient(135deg, #ff7043, #e64a19);
+}
+
+.world-rank-label.rank-SSSE,
+.world-rank-label.rank-SSSD,
+.world-rank-label.rank-SSSF,
+.world-rank-label.rank-SSSC,
+.world-rank-label.rank-SSSB,
+.world-rank-label.rank-SSSA {
+  background: linear-gradient(135deg, #e91e63, #c62828);
+}
+
+.world-rank-label.rank-SSSS {
+  background: linear-gradient(135deg, #d500f9, #ff5722);
+}
+
+.world-rank-label.rank-SSSSE,
+.world-rank-label.rank-SSSSD,
+.world-rank-label.rank-SSSSF,
+.world-rank-label.rank-SSSSC,
+.world-rank-label.rank-SSSSB,
+.world-rank-label.rank-SSSSA {
+  background: linear-gradient(135deg, #e040fb, #9c27b0);
+}
+
+.world-rank-label.rank-SSSSS {
+  background: linear-gradient(135deg, #ffffff, #ffd54f, #d500f9);
+  color: #4e342e;
 }
 
 .world-compass {

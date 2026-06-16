@@ -4238,30 +4238,4 @@
   }
 
   init();
-
-  window.__fishermon3D = function () {
-    if (!playing || battle) return null;
-    const zone = ZONES[state.zone] || ZONES[0];
-    return {
-      worldW: 2600,
-      worldH: 2000,
-      ground: zone?.floor || "#4fc3f7",
-      defaultModel: "fish",
-      player: {
-        x: player.x,
-        y: player.y,
-        facing: player.facing,
-        model: "trainer",
-        color: "#1565c0",
-      },
-      entities: mobs.map((m, i) => ({
-        id: m.id || `fish${i}`,
-        x: m.x,
-        y: m.y,
-        model: "fish",
-        color: m.color || "#ff9800",
-        scale: 0.65 + (m.level || 1) * 0.03,
-      })),
-    };
-  };
 })();

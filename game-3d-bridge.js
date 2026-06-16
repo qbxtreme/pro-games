@@ -32,11 +32,16 @@
         state = Game3DAdapters.generic(id);
       }
       if (state) {
-        if (!active) {
+        Game3DCore.syncState(state);
+        const mode = Game3DCore.getRenderMode?.();
+        const use3d = mode === "canvas" || mode === "entities";
+        if (use3d && !active) {
           active = true;
           app?.classList.add("game-3d-active");
+        } else if (!use3d && active) {
+          active = false;
+          app?.classList.remove("game-3d-active");
         }
-        Game3DCore.syncState(state);
       } else if (active) {
         active = false;
         app?.classList.remove("game-3d-active");
