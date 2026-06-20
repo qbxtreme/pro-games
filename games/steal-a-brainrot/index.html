@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Steal a BrainRot</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+  <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-3d.css">
+  <link rel="stylesheet" href="../../game-chat.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+</head>
+<body>
+  <div id="app">
+    <header id="game-header">
+      <div class="hud-top">
+        <button id="hub-btn" type="button" class="hub-back-btn" title="Back to Hub">← Hub</button>
+        <span id="cash-display" class="stat-pill cash-pill">$100</span>
+        <span id="income-display" class="stat-pill income-pill">$0/s</span>
+        <span id="slots-display" class="stat-pill slots-pill">0/8</span>
+        <span id="rebirth-display" class="stat-pill rebirth-pill">♻️ 0/20 · 🏢 1F</span>
+      </div>
+      <p id="floor-display" class="floor-hint">Floor 1 — next at rebirth 5</p>
+    </header>
+    <div id="spawn-banner" class="spawn-banner hidden"></div>
+    <p id="og-timer" class="og-timer">OG this week: checking...</p>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="belt-labels" class="belt-labels hidden" aria-hidden="true"></div>
+      <div id="base-labels" class="base-labels hidden" aria-hidden="true"></div>
+
+      <div id="action-dock" class="action-dock hidden">
+        <button id="buy-btn" class="buy-btn hidden" type="button">💰 BUY</button>
+        <button id="sell-btn" class="sell-btn hidden" type="button">💸 SELL</button>
+        <button id="rebirth-btn" class="rebirth-dock-btn hidden" type="button">♻️ REBIRTH</button>
+        <p id="action-hint" class="action-hint">Buy on the conveyor · sell BrainRots at your base</p>
+        <button id="menu-btn" type="button" class="menu-link">Menu</button>
+      </div>
+
+      <div id="rebirth-overlay" class="world-overlay hidden">
+        <div class="world-panel rebirth-panel">
+          <h2>♻️ Rebirth</h2>
+          <p id="rebirth-desc" class="world-panel-desc">Pay the rebirth cost — keep your BrainRots &amp; leftover cash.</p>
+          <p id="rebirth-multi" class="rebirth-multi-text"></p>
+          <input id="rebirth-confirm" type="text" maxlength="8" placeholder='Type "ok" to confirm'>
+          <button type="button" id="rebirth-yes-btn" class="big-btn">YES — REBIRTH</button>
+          <button type="button" id="rebirth-no-btn" class="small-btn">Cancel</button>
+        </div>
+      </div>
+
+      <div id="sell-overlay" class="world-overlay hidden">
+        <div class="world-panel sell-panel">
+          <h2>💸 Sell BrainRot</h2>
+          <p id="sell-desc" class="world-panel-desc">Choose your sell price.</p>
+          <label class="sell-price-label" for="sell-price">Sell for ($)</label>
+          <input id="sell-price" type="number" min="0" step="1" placeholder="100">
+          <button type="button" id="sell-yes-btn" class="big-btn sell-confirm-btn">SELL</button>
+          <button type="button" id="sell-no-btn" class="small-btn">Cancel</button>
+        </div>
+      </div>
+
+      <div class="joystick-wrap hidden" id="joystick-wrap">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="brainrots.js"></script>
+  <script src="brainrot-models.js"></script>
+  <script src="game.js"></script>
+  <script src="../../game-3d-core.js"></script>
+  <script src="../../game-3d-adapters.js"></script>
+  <script src="../../game-3d-bridge.js"></script>
+  <script src="../../game-sfx.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="../_templates/base/game-mp-bootstrap.js"></script>
+  <script src="../../game-chat.js"></script>
+  <script src="../../game-realism.js"></script>
+  <script src="../_templates/base/game-realism-bootstrap.js"></script>
+  <script>
+    GameChat.init({
+      room: "steal-a-brainrot",
+      getName: () => (window.HubPlayer?.get?.() || "Player"),
+    });
+  </script>
+</body>
+</html>

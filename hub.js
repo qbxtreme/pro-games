@@ -95,15 +95,25 @@ const BAP_ORIGINALS = [
     available: true,
   },
   {
-    id: "strength-simulator",
-    title: "Strength Simulator",
-    emoji: "💪",
-    description: "Lift weights, train hard, and become the strongest on the server!",
-    path: "games/strength-simulator/",
+    id: "steal-a-poop",
+    title: "Steal a Poop",
+    emoji: "💩",
+    description: "Grab poops from the conveyor and steal from other players!",
+    path: "games/steal-a-poop/",
     tag: "Multi",
     engine: "local",
     available: false,
     comingSoon: true,
+  },
+  {
+    id: "steal-a-brainrot",
+    title: "Steal a BrainRot",
+    emoji: "🧠",
+    description: "3D conveyor tycoon — buy BrainRots, earn cash, steal & rebirth!",
+    path: "games/steal-a-brainrot/",
+    tag: "Multi",
+    engine: "local",
+    available: true,
   },
 ];
 
@@ -142,7 +152,8 @@ const GAME_EMOJIS = {
   "hungry-snake-worm": "🐍",
   "fat-simulator": "🐶",
   "raise-a-monster": "👾",
-  "strength-simulator": "💪",
+  "steal-a-poop": "💩",
+  "steal-a-brainrot": "🧠",
 };
 
 const TAG_EMOJIS = {
@@ -644,7 +655,7 @@ function showHubToast(msg) {
 }
 
 const MAKE_GAME_NAME_KEY = "becomeAProMakeGameName";
-const MAKE_GAME_COST = 200;
+const MAKE_GAME_COST = 0;
 
 function setupMakeGameRequest() {
   const btn = document.getElementById("make-game-btn");
@@ -663,6 +674,12 @@ function setupMakeGameRequest() {
 
   function refreshMakeGameBalance() {
     if (!balanceEl) return;
+    if (MAKE_GAME_COST <= 0) {
+      balanceEl.classList.add("hidden");
+      sendBtn.disabled = false;
+      return;
+    }
+    balanceEl.classList.remove("hidden");
     const tokens = getTokens();
     balanceEl.textContent = `Your balance: 🪙 ${tokens}`;
     balanceEl.classList.toggle("not-enough", tokens < MAKE_GAME_COST);
@@ -694,7 +711,7 @@ function setupMakeGameRequest() {
       return;
     }
 
-    if (getTokens() < MAKE_GAME_COST) {
+    if (MAKE_GAME_COST > 0 && getTokens() < MAKE_GAME_COST) {
       showHubToast(`You need ${MAKE_GAME_COST} Pro Tokens! Get more in Settings 🪙`);
       return;
     }
@@ -711,7 +728,7 @@ function setupMakeGameRequest() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not send.");
 
-      if (!window.BecomeAPro.spendTokens(MAKE_GAME_COST)) {
+      if (MAKE_GAME_COST > 0 && !window.BecomeAPro.spendTokens(MAKE_GAME_COST)) {
         throw new Error(`You need ${MAKE_GAME_COST} Pro Tokens!`);
       }
 
@@ -727,9 +744,132 @@ function setupMakeGameRequest() {
       showHubToast(msg);
       refreshMakeGameBalance();
     } finally {
-      sendBtn.disabled = getTokens() < MAKE_GAME_COST;
-      sendBtn.textContent = `Pay ${MAKE_GAME_COST} 🪙 & Send`;
+      sendBtn.disabled = MAKE_GAME_COST > 0 && getTokens() < MAKE_GAME_COST;
+      sendBtn.textContent = MAKE_GAME_COST > 0 ? `Pay ${MAKE_GAME_COST} 🪙 & Send` : "Send";
     }
+  });
+}
+
+const CREATOR_MODE_KEY = "becomeAProCreatorMode";
+
+function isCreatorScreen() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("creator") === "1") {
+    try { localStorage.setItem(CREATOR_MODE_KEY, "1"); } catch (_) {}
+    return true;
+  }
+  try {
+    if (localStorage.getItem(CREATOR_MODE_KEY) === "1") return true;
+  } catch (_) {}
+  return !!(window.BecomeAProOwner && BecomeAProOwner.isActive());
+}
+
+function formatGameRequestTime(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString();
+  } catch (_) {
+    return String(iso);
+  }
+}
+
+function updateCreatorInboxCount(count) {
+  const el = document.getElementById("creator-inbox-count");
+  if (!el) return;
+  if (count === null) {
+    el.textContent = "Could not load ideas";
+    return;
+  }
+  if (count === 0) {
+    el.textContent = "No game ideas yet";
+    return;
+  }
+  el.textContent = `${count} game idea${count === 1 ? "" : "s"} — including past messages`;
+}
+
+function renderCreatorInboxList(requests) {
+  const list = document.getElementById("creator-inbox-list");
+  if (!list) return;
+  list.innerHTML = "";
+  updateCreatorInboxCount(requests.length);
+  if (!requests.length) {
+    const empty = document.createElement("p");
+    empty.className = "creator-inbox-empty";
+    empty.textContent = "No game ideas yet. When someone uses Make a game, their message shows up here for you to build!";
+    list.appendChild(empty);
+    return;
+  }
+  requests.forEach((req, index) => {
+    const item = document.createElement("article");
+    item.className = "creator-inbox-item";
+    item.setAttribute("role", "listitem");
+    const isPast = index > 0;
+    item.innerHTML = `
+      <div class="creator-inbox-item-head">
+        <span>From ${(req.from || "Player").slice(0, 16)}${isPast ? " · past" : " · newest"}</span>
+        <span>${formatGameRequestTime(req.time)}</span>
+      </div>
+      <p class="creator-inbox-item-text"></p>
+    `;
+    item.querySelector(".creator-inbox-item-text").textContent = req.text || "";
+    list.appendChild(item);
+  });
+}
+
+async function loadCreatorInbox() {
+  const list = document.getElementById("creator-inbox-list");
+  if (list) list.innerHTML = '<p class="creator-inbox-empty">Loading all game ideas...</p>';
+  updateCreatorInboxCount(null);
+  try {
+    const res = await fetch("/api/game-requests");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not load requests.");
+    renderCreatorInboxList(data.requests || []);
+  } catch (err) {
+    updateCreatorInboxCount(null);
+    if (list) {
+      list.innerHTML = "";
+      const errEl = document.createElement("p");
+      errEl.className = "creator-inbox-empty";
+      errEl.textContent = window.PRO_GAMES?.staticHost
+        ? "Run npm start to see game ideas from players."
+        : err.message || "Could not load game ideas.";
+      list.appendChild(errEl);
+    }
+  }
+}
+
+function setupCreatorInbox() {
+  const btn = document.getElementById("creator-inbox-btn");
+  const overlay = document.getElementById("creator-inbox-overlay");
+  const closeBtn = document.getElementById("creator-inbox-close-btn");
+  const refreshBtn = document.getElementById("creator-inbox-refresh-btn");
+  if (!btn || !overlay || !closeBtn) return;
+
+  function openCreatorInbox() {
+    if (!isCreatorScreen()) {
+      showHubToast("Creator only — open with ?creator=1 or sign in as Casey.");
+      return;
+    }
+    overlay.classList.remove("hidden");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("creator-textbox-open");
+    loadCreatorInbox();
+  }
+
+  function closeCreatorInbox() {
+    overlay.classList.add("hidden");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("creator-textbox-open");
+  }
+
+  if (isCreatorScreen()) btn.classList.remove("hidden");
+
+  btn.addEventListener("click", openCreatorInbox);
+  closeBtn.addEventListener("click", closeCreatorInbox);
+  refreshBtn?.addEventListener("click", loadCreatorInbox);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeCreatorInbox();
   });
 }
 
@@ -983,6 +1123,7 @@ async function initHub() {
   handlePurchaseReturn();
   maybeShowDailyReward();
   setupMakeGameRequest();
+  setupCreatorInbox();
   setupWheel();
   setupMaxGear();
   setupResetProgress();

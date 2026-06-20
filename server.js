@@ -38,6 +38,28 @@ function sanitizeGameRequestText(text) {
   return String(text || "").trim().slice(0, GAME_REQUEST_MAX);
 }
 
+function loadGameRequests() {
+  if (!fs.existsSync(GAME_REQUESTS_FILE)) return [];
+  const lines = fs.readFileSync(GAME_REQUESTS_FILE, "utf8").split("\n").filter(Boolean);
+  const requests = [];
+  for (const line of lines) {
+    try {
+      const entry = JSON.parse(line);
+      if (entry && entry.text) requests.push(entry);
+    } catch (_) {}
+  }
+  return requests.sort((a, b) => (b.id || 0) - (a.id || 0));
+}
+
+function handleGameRequestsListApi(req, res) {
+  if (req.method !== "GET") {
+    sendJson(res, 405, { error: "Method not allowed." });
+    return true;
+  }
+  sendJson(res, 200, { requests: loadGameRequests() });
+  return true;
+}
+
 function handleGameRequestApi(req, res) {
   if (req.method !== "POST") {
     sendJson(res, 405, { error: "Method not allowed." });
@@ -384,6 +406,10 @@ async function handleApi(req, res, pathname, searchParams) {
       if (result) return;
     }
     return sendJson(res, 404, { error: "Not found." });
+  }
+
+  if (pathname === "/api/game-requests") {
+    if (handleGameRequestsListApi(req, res)) return;
   }
 
   if (pathname === "/api/game-request") {

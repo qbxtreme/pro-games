@@ -81,9 +81,27 @@
   </div>
 
   <div class="hub-bottom-dock">
-    <div class="hub-update-banner" aria-label="New Update 2.7">
-      <p class="hub-update-label">New Update</p>
-      <p class="hub-update-version">Update 2.7</p>
+    <div class="hub-bottom-dock-inner">
+      <div class="hub-update-banner" aria-label="New Update 3.4">
+        <p class="hub-update-label">New Update</p>
+        <p class="hub-update-version">Update 3.4</p>
+      </div>
+      <button type="button" id="creator-inbox-btn" class="creator-inbox-btn hidden" title="View game ideas">Text box</button>
+    </div>
+  </div>
+
+  <div id="creator-inbox-overlay" class="hub-overlay creator-inbox-overlay hidden" aria-hidden="true">
+    <div class="creator-textbox-screen" role="dialog" aria-labelledby="creator-textbox-title">
+      <header class="creator-textbox-header">
+        <h2 id="creator-textbox-title">Text box</h2>
+        <p id="creator-inbox-count" class="creator-inbox-count">Loading game ideas...</p>
+        <p class="creator-inbox-desc">Read what players want you to build — includes every past message.</p>
+      </header>
+      <div id="creator-inbox-list" class="creator-textbox-list" role="list"></div>
+      <footer class="creator-textbox-footer">
+        <button type="button" id="creator-inbox-refresh-btn" class="hub-action-btn creator-inbox-refresh-btn">Refresh</button>
+        <button type="button" id="creator-inbox-close-btn" class="hub-action-btn creator-inbox-close-btn">Back to Hub</button>
+      </footer>
     </div>
   </div>
 
@@ -92,15 +110,15 @@
       <h2>Make a game</h2>
       <div class="make-game-cost-box">
         <span class="make-game-cost-label">Cost</span>
-        <span class="make-game-cost-amount">🪙 200 Pro Tokens</span>
+        <span class="make-game-cost-amount">Free</span>
       </div>
-      <p id="make-game-balance" class="make-game-balance">Your balance: 🪙 0</p>
+      <p id="make-game-balance" class="make-game-balance hidden">Your balance: 🪙 0</p>
       <p class="make-game-desc">Describe your game idea. We'll get the message on the computer!</p>
       <label class="make-game-label" for="make-game-from">Your name</label>
       <input type="text" id="make-game-from" class="make-game-input" maxlength="16" placeholder="Casey" autocomplete="nickname">
       <label class="make-game-label" for="make-game-text">Your game idea</label>
       <textarea id="make-game-text" class="make-game-textarea" maxlength="500" rows="4" placeholder="Example: A game where you fly dragons and race friends!"></textarea>
-      <button type="button" id="make-game-send-btn" class="hub-action-btn make-game-send-btn">Pay 200 🪙 &amp; Send</button>
+      <button type="button" id="make-game-send-btn" class="hub-action-btn make-game-send-btn">Send</button>
       <button type="button" id="make-game-cancel-btn" class="hub-action-btn make-game-cancel-btn">Cancel</button>
     </div>
   </div>

@@ -30,11 +30,11 @@
     },
 
     "brawl-stars-mod"() {
-      return null;
+      return call(window.__brawlStarsMod3D);
     },
 
     "mini-brawl-stars"() {
-      return null;
+      return call(window.__miniBrawlStars3D);
     },
 
     "mob-battle"() {
@@ -63,6 +63,14 @@
 
     "100-buttons"() {
       return call(window.__buttons3D);
+    },
+
+    "strength-simulator"() {
+      return call(window.__strengthSimulator3D);
+    },
+
+    "steal-a-brainrot"() {
+      return call(window.__stealABrainrot3D);
     },
 
     generic(id) {

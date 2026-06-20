@@ -1,0 +1,460 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #263238;
+  color: #fff;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+#game-header {
+  padding: 10px 12px;
+  padding-top: max(10px, env(safe-area-inset-top));
+  background: rgba(255,255,255,0.95);
+  color: #311b92;
+  z-index: 20;
+}
+
+.hud-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.hub-back-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid #512da8;
+  background: #ede7f6;
+  color: #311b92;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.stat-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 2px solid #512da8;
+  background: #ede7f6;
+}
+
+.cash-pill { background: #c8e6c9; border-color: #2e7d32; color: #1b5e20; }
+.income-pill { background: #fff9c4; border-color: #f57f17; color: #e65100; }
+.slots-pill { background: #e1bee7; border-color: #7b1fa2; color: #4a148c; }
+.rebirth-pill { background: #c5e1a5; border-color: #558b2f; color: #33691e; font-size: 0.76rem; }
+
+.floor-hint {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #512da8;
+  opacity: 0.85;
+}
+
+#app.game-3d-active .floor-hint {
+  color: #fff176;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.spawn-banner {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #ff1744, #ff9100, #ffea00);
+  color: #000;
+  font-weight: 900;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 20px rgba(255, 23, 68, 0.5);
+  animation: banner-pulse 0.8s ease-in-out infinite alternate;
+}
+
+#app.game-3d-active #game-header,
+#app.game-3d-active .spawn-banner,
+#app.game-3d-active .og-timer {
+  z-index: 25;
+  position: relative;
+}
+
+@keyframes banner-pulse {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.03); }
+}
+
+.og-timer {
+  position: absolute;
+  top: 52px;
+  right: 10px;
+  z-index: 24;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff176;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+#app.playing #game-header {
+  padding: 4px 8px;
+  padding-top: max(4px, env(safe-area-inset-top));
+}
+
+#app.playing .stat-pill {
+  padding: 3px 8px;
+  font-size: 0.7rem;
+}
+
+#app.playing .rebirth-pill {
+  font-size: 0.66rem;
+}
+
+#app.playing .floor-hint {
+  display: none;
+}
+
+#app.playing .og-timer {
+  top: 38px;
+  font-size: 0.58rem;
+}
+
+#app.playing .hub-back-btn {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+#app.playing .spawn-banner {
+  top: 42px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+#game-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #43a047;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.belt-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.belt-labels.hidden { display: none; }
+
+.belt-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  min-width: 88px;
+  max-width: 160px;
+  padding: 5px 10px 6px;
+  border-radius: 8px;
+  border: 2px solid #9e9e9e;
+  background: rgba(0, 0, 0, 0.88);
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.belt-label-name {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 3px;
+  word-break: break-word;
+}
+
+.belt-label-income {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #aed581;
+  line-height: 1.2;
+}
+
+.belt-label-cost,
+.belt-label-money {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff176;
+  line-height: 1.2;
+}
+
+.base-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.base-labels.hidden { display: none; }
+
+.base-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: 160px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.base-label-owned {
+  color: #fff;
+  background: rgba(21, 101, 192, 0.92);
+  border: 2px solid #90caf9;
+}
+
+.base-label-empty {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(55, 71, 79, 0.88);
+  border: 2px solid #90a4ae;
+  font-weight: 700;
+  font-style: italic;
+}
+
+#app.game-3d-active .base-labels {
+  z-index: 11;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(49, 27, 146, 0.85);
+}
+
+.overlay.hidden { display: none; }
+
+.panel {
+  width: min(100%, 420px);
+  padding: 22px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff, #ede7f6);
+  color: #311b92;
+  border: 3px solid #512da8;
+}
+
+.panel h1 { margin-bottom: 8px; font-size: 1.45rem; }
+.tagline { margin-bottom: 12px; line-height: 1.4; font-size: 0.92rem; }
+
+.feature-list {
+  list-style: none;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.feature-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #d1c4e9;
+  font-size: 0.88rem;
+}
+
+#name-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px solid #512da8;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+.big-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #7e57c2, #512da8);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.small-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #78909c;
+  background: #eceff1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action-dock {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.action-dock.hidden { display: none; }
+
+.buy-btn {
+  padding: 14px 18px;
+  border: 3px solid #2e7d32;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #66bb6a, #43a047);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1b5e20;
+}
+
+.buy-btn.hidden { display: none; }
+
+.sell-btn {
+  padding: 14px 18px;
+  border: 3px solid #e65100;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffb74d, #f57c00);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #bf360c;
+}
+
+.sell-btn.hidden { display: none; }
+
+.sell-price-label {
+  display: block;
+  margin: 10px 0 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.sell-panel input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 2px solid #e65100;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sell-confirm-btn {
+  background: linear-gradient(180deg, #ffb74d, #ef6c00);
+}
+
+.rebirth-dock-btn {
+  padding: 12px 16px;
+  border: 3px solid #558b2f;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #aed581, #7cb342);
+  color: #1b5e20;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #33691e;
+}
+
+.rebirth-dock-btn.hidden { display: none; }
+
+.world-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.world-overlay.hidden { display: none; }
+
+.world-panel {
+  width: min(100%, 380px);
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, #ede7f6);
+  color: #311b92;
+  border: 3px solid #512da8;
+  text-align: center;
+}
+
+.world-panel h2 { margin-bottom: 8px; font-size: 1.25rem; }
+
+.world-panel-desc {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.rebirth-panel input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #512da8;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.rebirth-multi-text {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #558b2f;
+}
+
+.action-hint {
+  max-width: 180px;
+  text-align: right;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.menu-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.joystick-wrap {
+  z-index: 25;
+  left: max(16px, env(safe-area-inset-left)) !important;
+  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+}
+
+.joystick-wrap.hidden { display: none; }
