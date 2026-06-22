@@ -424,5 +424,5 @@
     if (window.RankedWorld) RankedWorld.bindControls();
   }
 
-  init();
+  __bapDeferInit(init);
 })();

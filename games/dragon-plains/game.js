@@ -140,6 +140,31 @@ maybeResetGame();
 
 let state = loadState();
 saveState();
+
+function refreshDragonFromSave() {
+  state = loadState();
+  if (state.startersDone) {
+    document.getElementById("starter-overlay")?.classList.add("hidden");
+    if (!state.battlePetId && state.pets.length > 0) {
+      state.battlePetId = state.pets[0].id;
+    }
+  } else {
+    document.getElementById("starter-overlay")?.classList.remove("hidden");
+  }
+  setupHotbar();
+  if (typeof renderPets === "function") renderPets();
+  if (typeof renderHub === "function") renderHub();
+}
+
+if (window.BecomeAProSave) {
+  BecomeAProSave.registerGameSave("dragonForestSave", () => state);
+  BecomeAProSave.registerGameReload("dragonForestSave", refreshDragonFromSave);
+  BecomeAProSave.onRestore(refreshDragonFromSave);
+  BecomeAProSave.whenReady.then((restored) => {
+    if (restored) refreshDragonFromSave();
+  });
+}
+
 let selectedPetId = null;
 let battle = null;
 let nameCallback = null;

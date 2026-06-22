@@ -2230,10 +2230,14 @@
     resizeMenuHeroCanvas();
   }
 
+  function robloxViewY() {
+    return window.AllOutCamera ? AllOutCamera.viewOffsetY(h) : h * 0.5;
+  }
+
   function screenPos(wx, wy, useCam) {
     const cx = useCam?.x ?? cam.x;
     const cy = useCam?.y ?? cam.y;
-    return { x: wx - cx + w * 0.5, y: wy - cy + h * 0.52 };
+    return { x: wx - cx + w * 0.5, y: wy - cy + robloxViewY() };
   }
 
   function worldToScreen(wx, wy) {
@@ -2293,7 +2297,7 @@
     const theme = mapTheme || DEFAULT_MAP_THEME;
     const border = 60;
     const bx = border - cx + w * 0.5;
-    const by = border - cy + h * 0.52;
+    const by = border - cy + robloxViewY();
     const bw = ARENA_W - border * 2;
     const bh = ARENA_H - border * 2;
 
@@ -2306,7 +2310,7 @@
       ];
       strips.forEach(([wx, wy, ww, wh]) => {
         const sx = wx - cx + w * 0.5;
-        const sy = wy - cy + h * 0.52;
+        const sy = wy - cy + robloxViewY();
         if (sx + ww < -80 || sx > w + 80 || sy + wh < -80 || sy > h + 80) return;
         const g = ctx.createLinearGradient(sx, sy, sx, sy + wh);
         g.addColorStop(0, theme.border[0]);
@@ -2338,7 +2342,7 @@
       ctx.fillStyle = "#8d6e63";
       strips.forEach(([wx, wy, ww, wh]) => {
         const sx = wx - cx + w * 0.5;
-        const sy = wy - cy + h * 0.52;
+        const sy = wy - cy + robloxViewY();
         if (sx + ww < -80 || sx > w + 80 || sy + wh < -80 || sy > h + 80) return;
         ctx.fillRect(sx, sy, ww, wh);
       });
@@ -2351,7 +2355,7 @@
     const theme = mapTheme || DEFAULT_MAP_THEME;
     const [c0, c1, c2, c3] = theme.grassFill;
     const sx = -cx + w * 0.5;
-    const sy = -cy + h * 0.52;
+    const sy = -cy + robloxViewY();
     const ground = ctx.createLinearGradient(sx, sy, sx, sy + ARENA_H);
     ground.addColorStop(0, c0);
     ground.addColorStop(0.35, c1);
@@ -2363,7 +2367,7 @@
     const sunWx = ARENA_W * 0.72;
     const sunWy = ARENA_H * 0.08;
     const sunSx = sunWx - cx + w * 0.5;
-    const sunSy = sunWy - cy + h * 0.52;
+    const sunSy = sunWy - cy + robloxViewY();
     const sun = ctx.createRadialGradient(sunSx, sunSy, 10, sunSx, sunSy, Math.max(ARENA_W, ARENA_H) * 0.55);
     sun.addColorStop(0, "rgba(255,248,220,0.12)");
     sun.addColorStop(0.45, "rgba(255,255,255,0.04)");
@@ -2568,9 +2572,9 @@
     const cy = useCam?.y ?? cam.y;
     const pad = GRASS_TILE * 3;
     const left = cx - w * 0.5 - pad;
-    const top = cy - h * 0.52 - pad;
+    const top = cy - robloxViewY() - pad;
     const right = cx + w * 0.5 + pad;
-    const bottom = cy + h * 0.52 + pad;
+    const bottom = cy + robloxViewY() + pad;
     const playField = grassOnly ?? playing;
 
     drawSkyBackdrop();
@@ -2582,7 +2586,7 @@
       const wy = tile.row * GRASS_TILE;
       if (wx + GRASS_TILE < left || wx > right || wy + GRASS_TILE < top || wy > bottom) return;
       const sx = wx - cx + w * 0.5;
-      const sy = wy - cy + h * 0.52;
+      const sy = wy - cy + robloxViewY();
       ctx.fillStyle = tile.color;
       ctx.fillRect(sx, sy, GRASS_TILE + 1, GRASS_TILE + 1);
       drawGrassTileDetail(sx, sy, tile);
@@ -2605,7 +2609,7 @@
     ctx.fillStyle = light;
     ctx.fillRect(0, 0, w, h);
 
-    const vignette = ctx.createRadialGradient(w * 0.5, h * 0.52, Math.min(w, h) * 0.25, w * 0.5, h * 0.52, Math.max(w, h) * 0.72);
+    const vignette = ctx.createRadialGradient(w * 0.5, robloxViewY(), Math.min(w, h) * 0.25, w * 0.5, robloxViewY(), Math.max(w, h) * 0.72);
     vignette.addColorStop(0, "rgba(0,0,0,0)");
     vignette.addColorStop(1, theme.vignette);
     ctx.fillStyle = vignette;
@@ -2618,7 +2622,7 @@
     const cx = useCam?.x ?? cam.x;
     const cy = useCam?.y ?? cam.y;
     const mx = CENTER_X - cx + w * 0.5;
-    const my = CENTER_Y - cy + h * 0.52;
+    const my = CENTER_Y - cy + robloxViewY();
     const pulse = 0.88 + Math.sin(animT * 1.8) * 0.12;
 
     ctx.fillStyle = p.outer;
@@ -2820,7 +2824,7 @@
     const cx = useCam?.x ?? cam.x;
     const cy = useCam?.y ?? cam.y;
     const sx = wall.x - cx + w * 0.5;
-    const sy = wall.y - cy + h * 0.52;
+    const sy = wall.y - cy + robloxViewY();
     if (sx + wall.w < -60 || sx > w + 60 || sy + wall.h < -60 || sy > h + 60) return;
 
     if (wall.kind === "bush") {
@@ -4169,8 +4173,12 @@
     bursts = bursts.filter((p) => { p.life -= dt; p.r += 120 * dt; return p.life > 0; });
 
     if (player && !player.dead) {
-      cam.x += (player.x - cam.x) * Math.min(1, dt * 6);
-      cam.y += (player.y - cam.y) * Math.min(1, dt * 6);
+      if (window.AllOutCamera) {
+        AllOutCamera.follow(cam, player.x, player.y, dt, 0, 0, 6);
+      } else {
+        cam.x += (player.x - cam.x) * Math.min(1, dt * 6);
+        cam.y += (player.y - cam.y) * Math.min(1, dt * 6);
+      }
     }
 
     updateHud();
@@ -5599,8 +5607,12 @@
     if (!hitsRock(nx, player.y, 20) && !hitsMergeMachine(nx, player.y, 22)) player.x = nx;
     if (!hitsRock(player.x, ny, 20) && !hitsMergeMachine(player.x, ny, 22)) player.y = ny;
     clampArena(player);
-    cam.x += (player.x - cam.x) * Math.min(1, dt * 9);
-    cam.y += (player.y - cam.y) * Math.min(1, dt * 9);
+    if (window.AllOutCamera) {
+      AllOutCamera.follow(cam, player.x, player.y, dt, move.dx, move.dy, 9);
+    } else {
+      cam.x += (player.x - cam.x) * Math.min(1, dt * 9);
+      cam.y += (player.y - cam.y) * Math.min(1, dt * 9);
+    }
     if (Math.hypot(move.dx, move.dy) > 0.12) player.angle = Math.atan2(move.dy, move.dx);
     bullets = bullets.filter((b) => {
       if (b.owner !== "fx") return false;
@@ -5939,22 +5951,24 @@
   wrap = document.getElementById("game-wrap");
   bindEvents();
   resize();
-  initGrass();
-  migrateLegacyUnlocks();
-  syncPassUnlocks();
-  buildRosterUI();
-  buildGodBanner();
-  selectedGameModeId = loadGameModeId();
-  brawlerKey = loadSelectedBrawlerId();
-  updateGameModeUI();
-  updateMenuCoins();
-  updatePassMenuHint();
-  updateCharRankUI();
-  updateBrawlerUnlockUI();
-  applySavedBrawlerSelection();
-  if (new URLSearchParams(window.location.search).has("resetRank")) {
-    resetAllCharRank();
-    window.history.replaceState({}, "", window.location.pathname);
-  }
-  showMainMenu();
+  __bapDeferInit(function () {
+    initGrass();
+    migrateLegacyUnlocks();
+    syncPassUnlocks();
+    buildRosterUI();
+    buildGodBanner();
+    selectedGameModeId = loadGameModeId();
+    brawlerKey = loadSelectedBrawlerId();
+    updateGameModeUI();
+    updateMenuCoins();
+    updatePassMenuHint();
+    updateCharRankUI();
+    updateBrawlerUnlockUI();
+    applySavedBrawlerSelection();
+    if (new URLSearchParams(window.location.search).has("resetRank")) {
+      resetAllCharRank();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    showMainMenu();
+  });
 })();

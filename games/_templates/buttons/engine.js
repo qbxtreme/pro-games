@@ -86,7 +86,13 @@
     $("leave-game-btn")?.addEventListener("click", () => { location.href = "../../index.html"; });
     if (C.branding?.title) { document.title = C.branding.title; $("game-title").textContent = C.branding.title; $("game-tagline").textContent = C.branding.description; }
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  function reloadSave() { state = load(); updateHud(); }
+  if (window.__bapWatchSave) __bapWatchSave(SAVE, reloadSave);
+  __bapDeferInit(function () {
+    reloadSave();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  });
 
   window.__buttons3D = function () {
     if (!playing) return null;

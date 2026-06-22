@@ -6,7 +6,6 @@
   const CAPTURE_GEAR = ["gear1", "gear2", "income1", "income2", "hp1", "special1"];
   const DINO_GEAR = ["tranq1", "tranq2", "snack", "gift", "fence", "arena"];
   const FISHERMON_GEAR = ["rod1", "rod2", "bait", "cooler", "anchor", "net"];
-  const MONSTER_GEAR = ["horns", "crown", "flame", "aura"];
   const EGG_IDS = ["common", "rare", "epic", "legendary", "mythic", "divine"];
 
   const BRAINROT_GAMES = ["save-a-brainrot"];
@@ -111,15 +110,6 @@
     captureGames.forEach(({ key, gear, zones }) => {
       if (merge(key, captureSave(gear, zones))) count++;
     });
-
-    if (merge("raisingAMonster", {
-      level: 50,
-      exp: 0,
-      coins: 999999,
-      zone: 4,
-      bossesBeaten: bossList(4),
-      upgrades: MONSTER_GEAR.slice(),
-    })) count++;
 
     if (merge("dogFatSimulator", {
       foodTier: 7,

@@ -458,7 +458,7 @@ function drawWorldFrame() {
 
   const mapW = MAP_SIZE * TILE;
   const mapH = MAP_SIZE * TILE;
-  const targetCamX = state.playerFx * TILE - canvas.width / 2;
+  const targetCamX = state.playerFx * TILE - canvas.width * 0.5;
   const targetCamY = state.playerFy * TILE - canvas.height / 2;
   const clampedX = Math.max(0, Math.min(targetCamX, mapW - canvas.width));
   const clampedY = Math.max(0, Math.min(targetCamY, mapH - canvas.height));

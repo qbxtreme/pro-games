@@ -312,6 +312,52 @@ function progressFileForPlayer(player) {
   return path.join(PROGRESS_DIR, `${id}.json`);
 }
 
+function progressSnapshotScore(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return 0;
+  const games = snapshot.games || {};
+  const keys = Object.keys(games);
+  let size = 0;
+  keys.forEach((key) => {
+    const val = games[key];
+    if (val != null) size += String(val).length;
+  });
+  return keys.length * 5000 + size;
+}
+
+function loadLatestProgressEntry() {
+  ensureProgressDir();
+  let best = null;
+  let files = [];
+  try {
+    files = fs.readdirSync(PROGRESS_DIR);
+  } catch (_) {
+    return null;
+  }
+  for (const name of files) {
+    if (!name.endsWith(".json")) continue;
+    try {
+      const entry = JSON.parse(fs.readFileSync(path.join(PROGRESS_DIR, name), "utf8"));
+      if (!entry?.snapshot) continue;
+      const savedAt = entry.savedAt || entry.snapshot.savedAt || 0;
+      if (!best || savedAt > best.savedAt) {
+        best = { player: entry.player, snapshot: entry.snapshot, savedAt };
+      }
+    } catch (_) {}
+  }
+  return best;
+}
+
+function handleProgressLatestApi(req, res) {
+  if (req.method !== "GET") return false;
+  const entry = loadLatestProgressEntry();
+  if (!entry) {
+    sendJson(res, 200, { snapshot: null, player: null, savedAt: null });
+    return true;
+  }
+  sendJson(res, 200, entry);
+  return true;
+}
+
 async function handleProgressApi(req, res, searchParams) {
   ensureProgressDir();
 
@@ -358,6 +404,9 @@ async function handleProgressApi(req, res, searchParams) {
         try {
           const existing = JSON.parse(fs.readFileSync(file, "utf8"));
           existingAt = existing.savedAt || existing.snapshot?.savedAt || 0;
+          const existingScore = progressSnapshotScore(existing.snapshot);
+          const incomingScore = progressSnapshotScore(snapshot);
+          if (incomingScore < existingScore * 0.45) keep = false;
         } catch (_) {}
         const incomingAt = snapshot.savedAt || Date.now();
         if (incomingAt < existingAt - 2000) keep = false;
@@ -385,6 +434,10 @@ async function handleProgressApi(req, res, searchParams) {
 }
 
 async function handleApi(req, res, pathname, searchParams) {
+  if (pathname === "/api/progress/latest") {
+    if (handleProgressLatestApi(req, res)) return;
+  }
+
   if (pathname === "/api/progress") {
     const handled = await handleProgressApi(req, res, searchParams);
     if (handled !== false) return;

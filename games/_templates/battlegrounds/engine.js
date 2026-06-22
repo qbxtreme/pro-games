@@ -409,8 +409,12 @@
       return o.life > 0;
     });
 
-    cam.x += ((you?.x || 480) - cam.x) * 0.1;
-    cam.y += ((you?.y || 360) - cam.y) * 0.1;
+    if (window.AllOutCamera) {
+      AllOutCamera.followTopLeft(cam, you?.x || 480, you?.y || 360, w, h, 0.016, joy.dx, joy.dy, 10);
+    } else {
+      cam.x += ((you?.x || 480) - cam.x) * 0.1;
+      cam.y += ((you?.y || 360) - cam.y) * 0.1;
+    }
     updateHud();
     updateSkillBtn();
     draw();

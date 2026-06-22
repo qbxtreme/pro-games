@@ -144,7 +144,12 @@ html, body {
   position: relative;
   flex: 1;
   overflow: hidden;
-  background: #43a047;
+  background: #28e828;
+  touch-action: none;
+}
+
+#app.playing {
+  touch-action: none;
 }
 
 #game-canvas {
@@ -318,7 +323,8 @@ html, body {
   position: absolute;
   right: max(14px, env(safe-area-inset-right));
   bottom: max(18px, env(safe-area-inset-bottom));
-  z-index: 25;
+  z-index: 30;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -388,6 +394,25 @@ html, body {
 
 .rebirth-dock-btn.hidden { display: none; }
 
+.floor-btn {
+  padding: 12px 16px;
+  border: 3px solid #1565c0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #64b5f6, #1e88e5);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #0d47a1;
+}
+
+.floor-btn.hidden { display: none; }
+
+#floor-down-btn {
+  border-color: #6a1b9a;
+  background: linear-gradient(180deg, #ce93d8, #8e24aa);
+  box-shadow: 0 4px 0 #4a148c;
+}
+
 .world-overlay {
   position: absolute;
   inset: 0;
@@ -452,9 +477,32 @@ html, body {
 }
 
 .joystick-wrap {
-  z-index: 25;
-  left: max(16px, env(safe-area-inset-left)) !important;
-  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  touch-action: none;
 }
 
-.joystick-wrap.hidden { display: none; }
+.joystick-wrap.hidden { display: none !important; }
+
+.joystick-base {
+  position: relative;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: #7dff7d;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+  pointer-events: none;
+}

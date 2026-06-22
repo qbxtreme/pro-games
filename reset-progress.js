@@ -23,14 +23,13 @@
     "dinoPark",
     "fishermon",
     "mob-battle",
-    "raisingAMonster",
     "snakeIoBest",
     "snakeIoBestUnranked",
     "snakeIoBestRanked",
     "snakeIoHubStats",
     "snakeIoCoins",
-    "snakeIoUnlockedSkins",
-  ];
+    "stealABrainrotSave",
+    "stealBrainrotOgWeek",
 
   function gameSaveKeys() {
     const ids = new Set(EXTRA_PROGRESS_KEYS);

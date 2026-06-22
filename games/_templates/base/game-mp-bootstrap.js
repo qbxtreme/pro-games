@@ -12,6 +12,17 @@
     document.head.appendChild(s);
   }
 
+  if (!window.__bapDeferInit) {
+    window.__bapDeferInit = function (fn) {
+      if (typeof fn !== "function") return;
+      if (window.BecomeAProSave?.whenReady) {
+        BecomeAProSave.whenReady.then(fn);
+        return;
+      }
+      fn();
+    };
+  }
+
   if (!window.GameMP) return;
 
   const AUTO = "__bapMpAuto";

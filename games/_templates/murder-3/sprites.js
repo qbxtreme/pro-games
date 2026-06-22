@@ -1165,7 +1165,8 @@
     drawAmbientBackground(ctx, cam, w, h, isNight);
 
     ctx.save();
-    ctx.translate(w / 2 - cam.x, h / 2 - cam.y);
+    const viewY = window.AllOutCamera ? AllOutCamera.viewOffsetY(h) : h / 2;
+    ctx.translate(w / 2 - cam.x, viewY - cam.y);
 
     const vis = visibleTileRange(cam, w, h);
 

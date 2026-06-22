@@ -536,8 +536,12 @@
     }
     updateBots();
     if (round.you) {
-      cam.x += (round.you.x - cam.x) * 0.08;
-      cam.y += (round.you.y - cam.y) * 0.08;
+      if (window.AllOutCamera) {
+        AllOutCamera.followTopLeft(cam, round.you.x, round.you.y, w, h, 0.016, joy.dx, joy.dy, 8);
+      } else {
+        cam.x += (round.you.x - cam.x) * 0.08;
+        cam.y += (round.you.y - cam.y) * 0.08;
+      }
     }
     updateHud();
     draw();

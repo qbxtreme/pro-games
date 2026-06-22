@@ -2582,11 +2582,13 @@
   }
 
   function worldToScreen(wx, wy) {
-    return { x: wx - cam.x + w * 0.5, y: wy - cam.y + h * 0.52 };
+    if (window.AllOutCamera) return AllOutCamera.worldToScreen(wx, wy, cam, w, h);
+    return { x: wx - cam.x + w * 0.5, y: wy - cam.y + h * 0.5 };
   }
 
   function screenToWorld(sx, sy) {
-    return { x: sx + cam.x - w * 0.5, y: sy + cam.y - h * 0.52 };
+    if (window.AllOutCamera) return AllOutCamera.screenToWorld(sx, sy, cam, w, h);
+    return { x: sx + cam.x - w * 0.5, y: sy + cam.y - h * 0.5 };
   }
 
   function drawCastLinePreview() {
@@ -2651,8 +2653,9 @@
   }
 
   function drawWorld() {
-    const camX = cam.x - w * 0.5;
-    const camY = cam.y - h * 0.52;
+    const origin = window.AllOutCamera ? AllOutCamera.camOrigin(cam, w, h) : { x: cam.x - w * 0.5, y: cam.y - h * 0.5 };
+    const camX = origin.x;
+    const camY = origin.y;
     const zone = currentZone();
 
     ctx.fillStyle = zone.skyTop || "#87ceeb";
@@ -2807,6 +2810,8 @@
     if (len > 0) {
       cam.x = player.x;
       cam.y = player.y;
+    } else if (window.AllOutCamera) {
+      AllOutCamera.follow(cam, player.x, player.y, dt, dx, dy, 12);
     } else {
       const follow = Math.min(1, dt * 12);
       cam.x += (player.x - cam.x) * follow;
@@ -4237,7 +4242,7 @@
     resize();
   }
 
-  init();
+  __bapDeferInit(init);
 
   window.__fishermon3D = function () {
     if (!playing || battle) return null;

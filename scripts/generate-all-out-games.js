@@ -9,7 +9,6 @@ const GAMES_DIR = path.join(ROOT, "games");
 
 const EXISTING_FOLDERS = new Set([
   "fishermon",
-  "raise-a-monster",
   "fat-simulator",
   "dragon-plains",
   "dragon-racers",

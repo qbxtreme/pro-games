@@ -2178,19 +2178,20 @@ function init() {
   });
 }
 
-init();
+__bapDeferInit(init);
 
 window.__snakeIo3D = function () {
   if (!running || !player) return null;
   const segs = player.segments || [];
+  const head = segs[0];
   return {
     worldW: WORLD_RX * 2,
     worldH: WORLD_RY * 2,
     ground: "#1a237e",
     defaultModel: "snake",
     player: {
-      x: segs[0]?.x ?? WORLD_CX,
-      y: segs[0]?.y ?? WORLD_CY,
+      x: head?.x ?? WORLD_CX,
+      y: head?.y ?? WORLD_CY,
       model: "snake",
       color: playerColors[0] || "#4caf50",
     },

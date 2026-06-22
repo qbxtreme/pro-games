@@ -27,7 +27,7 @@
   const BASE_MODEL_D = 2.6;
   const BASE_FLOOR_W = 3.6;
   const BASE_FLOOR_D = 2.4;
-  const FLOOR_LIFT_WORLD = 34;
+  const FLOOR_LIFT_WORLD = BASE_H + 10;
   const MAX_SLOTS = 8;
   const MAX_REBIRTHS = 20;
   const REBIRTH_FLOOR_STEP = 5;
@@ -62,7 +62,7 @@
 
   let canvas, ctx, wrap;
   let playing = false;
-  let player = { x: BASE_LAYOUT[0].x + BASE_LAYOUT[0].w / 2, y: BASE_LAYOUT[0].y + BASE_LAYOUT[0].h / 2, facing: 1 };
+  let player = { x: BASE_LAYOUT[0].x + BASE_LAYOUT[0].w / 2, y: BASE_LAYOUT[0].y + BASE_LAYOUT[0].h / 2, facing: 1, floor: 0 };
   let cam = { x: player.x, y: player.y };
   let moveJoy = { dx: 0, dy: 0, active: false };
   let keys = {};
@@ -76,6 +76,7 @@
   let remotePlayers = [];
   let animT = 0;
   let sellTargetIndex = null;
+  let floorChangeCd = 0;
 
   function defaultState() {
     return { name: "Player", cash: 100, owned: [], rebirths: 0, baseSlot: null };
@@ -102,11 +103,21 @@
     try { localStorage.setItem(OG_WEEK_KEY, isoWeekKey()); } catch (_) {}
   }
 
+  function applyDevParams(st) {
+    try {
+      const p = new URLSearchParams(location.search);
+      if (p.has("rebirths")) {
+        st.rebirths = Math.max(0, Math.min(MAX_REBIRTHS, parseInt(p.get("rebirths"), 10) || 0));
+      }
+    } catch (_) {}
+    return st;
+  }
+
   function loadState() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) {
-        const parsed = { ...defaultState(), ...JSON.parse(raw) };
+        const parsed = applyDevParams({ ...defaultState(), ...JSON.parse(raw) });
         parsed.rebirths = Math.max(0, Math.min(MAX_REBIRTHS, parsed.rebirths || 0));
         if (parsed.baseSlot != null) {
           parsed.baseSlot = Math.max(0, Math.min(TOTAL_BASES - 1, parsed.baseSlot));
@@ -114,7 +125,7 @@
         return parsed;
       }
     } catch (_) {}
-    return defaultState();
+    return applyDevParams(defaultState());
   }
 
   function storyCount() {
@@ -197,26 +208,177 @@
     return occupant ? occupant.name : "empty base";
   }
 
+  function floorLift(floor) {
+    return floor * FLOOR_LIFT_WORLD;
+  }
+
+  function baseFloorRect(b, floor) {
+    const lift = floorLift(floor);
+    return { x: b.x, y: b.y - lift, w: b.w, h: b.h };
+  }
+
+  function myBaseSide() {
+    return myBaseSlot() < BASES_PER_SIDE ? "left" : "right";
+  }
+
+  function onMyBaseFloor(floor) {
+    const f = floor != null ? floor : (player.floor || 0);
+    return insideBaseFloor(myBaseRect(), f, player.x, player.y);
+  }
+
+  function stairsRect(floor) {
+    const b = myBaseRect();
+    const fr = baseFloorRect(b, floor);
+    const w = 120;
+    const h = 96;
+    const x = fr.x + (fr.w - w) / 2;
+    const y = fr.y + fr.h - h - 12;
+    return { x, y, w, h };
+  }
+
+  function onStairs() {
+    if (storyCount() <= 1) return false;
+    const s = stairsRect(player.floor || 0);
+    return player.x >= s.x && player.x <= s.x + s.w
+      && player.y >= s.y && player.y <= s.y + s.h;
+  }
+
+  function canUseFloorControls() {
+    if (storyCount() <= 1) return false;
+    if (nearBase()) return true;
+    for (let f = 0; f < storyCount(); f++) {
+      if (insideBaseFloor(myBaseRect(), f, player.x, player.y)) return true;
+    }
+    return false;
+  }
+
+  function groundPlaneY(y, floor) {
+    return y + floorLift(floor || 0);
+  }
+
+  function screenToWorld(sx, sy) {
+    const ac = window.AllOutCamera;
+    if (ac && canvas) return ac.screenToWorld(sx, sy, cam, canvas.width, canvas.height);
+    return {
+      x: sx + cam.x - canvas.width / 2,
+      y: sy + cam.y - canvas.height / 2,
+    };
+  }
+
+  function stairsAtWorld(x, y) {
+    if (storyCount() <= 1) return null;
+    for (let f = 0; f < storyCount(); f++) {
+      const s = stairsRect(f);
+      if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) return f;
+    }
+    return null;
+  }
+
+  function goFloor(delta) {
+    player.floor = player.floor || 0;
+    const stories = storyCount();
+    if (stories <= 1) {
+      const need = REBIRTH_FLOOR_STEP - (state.rebirths % REBIRTH_FLOOR_STEP || 0);
+      flashHint(`Need ${need} more rebirth${need === 1 ? "" : "s"} for floor 2 (5 total)`);
+      return false;
+    }
+    if (!canUseFloorControls()) {
+      flashHint("Walk to your base to use the stairs");
+      return false;
+    }
+    const max = stories - 1;
+    const next = player.floor + delta;
+    if (next < 0 || next > max) return false;
+    player.floor = next;
+    const s = stairsRect(next);
+    player.x = s.x + s.w / 2;
+    player.y = s.y + s.h / 2;
+    cam.x = player.x;
+    cam.y = player.y;
+    floorChangeCd = 0.4;
+    updateHud();
+    flashHint(`🏢 Floor ${player.floor + 1}`);
+    return true;
+  }
+
+  function insideBaseFloor(b, floor, x, y) {
+    const fr = baseFloorRect(b, floor);
+    const pad = 10;
+    return x >= fr.x + pad && x <= fr.x + fr.w - pad
+      && y >= fr.y + pad && y <= fr.y + fr.h - pad;
+  }
+
+  function enforcePlayerFloor() {
+    player.floor = player.floor || 0;
+    const stories = storyCount();
+    if (player.floor >= stories) player.floor = Math.max(0, stories - 1);
+    if (player.floor <= 0) {
+      player.floor = 0;
+      return;
+    }
+    const b = myBaseRect();
+    const fr = baseFloorRect(b, player.floor);
+    const pad = 18;
+    player.x = Math.max(fr.x + pad, Math.min(fr.x + fr.w - pad, player.x));
+    player.y = Math.max(fr.y + pad, Math.min(fr.y + fr.h - pad, player.y));
+  }
+
+  function drawStairs(floor) {
+    const s = stairsRect(floor);
+    const tl = worldToScreen(s.x, s.y);
+    const br = worldToScreen(s.x + s.w, s.y + s.h);
+    const active = player.floor === floor && onStairs();
+    ctx.fillStyle = active ? "rgba(255,235,59,0.5)" : "rgba(255,255,255,0.28)";
+    ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+    ctx.strokeStyle = active ? "#fdd835" : "rgba(255,255,255,0.65)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+    ctx.fillStyle = "#fff";
+    ctx.font = "600 9px system-ui,sans-serif";
+    ctx.textAlign = "center";
+    const label = floor < storyCount() - 1 ? "⬆ STAIRS" : "⬇ STAIRS";
+    ctx.fillText(label, tl.x + (br.x - tl.x) / 2, tl.y + (br.y - tl.y) / 2 + 3);
+  }
+
+  function ownedFloor(index) {
+    const stories = storyCount();
+    if (stories <= 1) return 0;
+    return Math.min(Math.floor(index / 4), stories - 1);
+  }
+
   function ownedSlotPos(index) {
     const b = myBaseRect();
-    const col = index % 4;
-    const row = Math.floor(index / 4);
+    const stories = storyCount();
+    const floor = ownedFloor(index);
+    const lift = floor * FLOOR_LIFT_WORLD;
     const padX = 52;
     const padY = 62;
     const innerW = b.w - padX * 2;
     const innerH = b.h - padY - 18;
     const cellW = innerW / 4;
-    const cellH = innerH / 2;
+    let col;
+    let row;
+    if (stories <= 1) {
+      col = index % 4;
+      row = Math.floor(index / 4);
+    } else {
+      col = index % 4;
+      row = 0;
+    }
+    const rowsOnFloor = stories <= 1 ? 2 : 1;
+    const cellH = innerH / rowsOnFloor;
     return {
       x: b.x + padX + col * cellW + cellW / 2,
-      y: b.y + padY + row * cellH + cellH / 2,
+      y: b.y - lift + padY + row * cellH + cellH / 2,
+      floor,
     };
   }
 
   function nearBase() {
     const b = myBaseRect();
-    return player.x >= b.x - 36 && player.x <= b.x + b.w + 36
-      && player.y >= b.y - 36 && player.y <= b.y + b.h + 44;
+    const fr = baseFloorRect(b, player.floor);
+    return player.x >= fr.x - 36 && player.x <= fr.x + fr.w + 36
+      && player.y >= fr.y - 36 && player.y <= fr.y + fr.h + 44;
   }
 
   function nearOwnedBrainrot() {
@@ -224,6 +386,7 @@
     let bestD = Infinity;
     state.owned.forEach((o, i) => {
       const pos = ownedSlotPos(i);
+      if (pos.floor !== player.floor) return;
       const d = Math.hypot(player.x - pos.x, player.y - pos.y);
       if (d < OWNED_NEAR_R && d < bestD) {
         bestD = d;
@@ -452,12 +615,6 @@
       rebEl.textContent = `♻️ ${state.rebirths}/${MAX_REBIRTHS} · 🏢 ${storyCount()}F`;
     }
     const floorEl = document.getElementById("floor-display");
-    if (floorEl) {
-      const next = nextStoryRebirth();
-      floorEl.textContent = next
-        ? `Floor ${storyCount()} — next at rebirth ${next}`
-        : `Floor ${storyCount()} — MAX`;
-    }
     const buyBtn = document.getElementById("buy-btn");
     const sellBtn = document.getElementById("sell-btn");
     const rebirthBtn = document.getElementById("rebirth-btn");
@@ -474,8 +631,29 @@
       }
     }
     if (rebirthBtn) {
-      rebirthBtn.classList.toggle("hidden", !nearBase() || state.rebirths >= MAX_REBIRTHS);
+      rebirthBtn.classList.toggle("hidden", player.floor !== 0 || !nearBase() || state.rebirths >= MAX_REBIRTHS);
       rebirthBtn.textContent = canRebirth() ? "♻️ REBIRTH" : `♻️ ${formatCash(rebirthCost())}`;
+    }
+    const floorUpBtn = document.getElementById("floor-up-btn");
+    const floorDownBtn = document.getElementById("floor-down-btn");
+    const multiStory = storyCount() > 1;
+    const canFloor = canUseFloorControls();
+    if (floorUpBtn) {
+      floorUpBtn.classList.toggle("hidden", !canFloor || player.floor >= storyCount() - 1);
+      floorUpBtn.textContent = `⬆️ FLOOR ${player.floor + 2}`;
+    }
+    if (floorDownBtn) {
+      floorDownBtn.classList.toggle("hidden", !canFloor || player.floor <= 0);
+      floorDownBtn.textContent = player.floor === 1 ? "⬇️ GROUND" : `⬇️ FLOOR ${player.floor}`;
+    }
+    if (floorEl) {
+      const next = nextStoryRebirth();
+      const baseInfo = next
+        ? `${storyCount()} stories · next at rebirth ${next}`
+        : `${storyCount()} stories · MAX`;
+      floorEl.textContent = multiStory
+        ? `You: Floor ${(player.floor || 0) + 1} · ${baseInfo}${canFloor ? " · tap ⬆️ or 🪜" : ""}`
+        : (next ? `Floor ${storyCount()} — next at rebirth ${next}` : `Floor ${storyCount()} — MAX`);
     }
     const ogEl = document.getElementById("og-timer");
     if (ogEl) {
@@ -492,18 +670,27 @@
   }
 
   function worldToScreen(x, y) {
+    const ac = window.AllOutCamera;
+    if (ac) return ac.worldToScreen(x, y, cam, canvas.width, canvas.height);
     return { x: x - cam.x + canvas.width / 2, y: y - cam.y + canvas.height / 2 };
+  }
+
+  function camViewOrigin() {
+    const ac = window.AllOutCamera;
+    if (ac) return ac.camOrigin(cam, canvas.width, canvas.height);
+    return { x: cam.x - canvas.width / 2, y: cam.y - canvas.height / 2 };
   }
 
   function drawGrass() {
     const tile = 48;
-    const startX = Math.floor((cam.x - canvas.width / 2) / tile) * tile;
-    const startY = Math.floor((cam.y - canvas.height / 2) / tile) * tile;
-    for (let gy = startY; gy < cam.y + canvas.height / 2 + tile; gy += tile) {
-      for (let gx = startX; gx < cam.x + canvas.width / 2 + tile; gx += tile) {
+    const origin = camViewOrigin();
+    const startX = Math.floor(origin.x / tile) * tile;
+    const startY = Math.floor(origin.y / tile) * tile;
+    for (let gy = startY; gy < origin.y + canvas.height + tile; gy += tile) {
+      for (let gx = startX; gx < origin.x + canvas.width + tile; gx += tile) {
         const s = worldToScreen(gx, gy);
         const alt = ((Math.floor(gx / tile) + Math.floor(gy / tile)) & 1) === 0;
-        ctx.fillStyle = alt ? "#66bb6a" : "#43a047";
+        ctx.fillStyle = alt ? "#7dff7d" : "#32ef32";
         ctx.fillRect(s.x, s.y, tile + 1, tile + 1);
         ctx.fillStyle = "rgba(0,0,0,0.05)";
         ctx.fillRect(s.x, s.y + tile - 4, tile + 1, 4);
@@ -597,7 +784,7 @@
       const stroke = !occupant ? "#546e7a" : (isMine ? "#1565c0" : "#c62828");
 
       for (let f = 0; f < stories; f++) {
-        const lift = f * 34;
+        const lift = f * FLOOR_LIFT_WORLD;
         const tl = worldToScreen(rect.x, rect.y - lift);
         const br = worldToScreen(rect.x + rect.w, rect.y + rect.h - lift);
         let floorFill = fill;
@@ -627,19 +814,33 @@
           ctx.textAlign = "center";
           ctx.fillText(`Floor ${f + 1}`, tl.x + (br.x - tl.x) / 2, tl.y + 14);
         }
-      }
-    });
 
-    state.owned.forEach((o, i) => {
-      const pos = ownedSlotPos(i);
-      const s = worldToScreen(pos.x, pos.y);
-      const rc = RARITY[o.rarity] || RARITY.common;
-      ctx.font = "22px system-ui,sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(o.emoji, s.x, s.y);
-      ctx.font = "6px system-ui,sans-serif";
-      ctx.fillStyle = rc.color;
-      ctx.fillText(o.rarity.slice(0, 3).toUpperCase(), s.x, s.y + 8);
+        if (isMine) {
+          state.owned.forEach((o, i) => {
+            if (ownedFloor(i) !== f) return;
+            const pos = ownedSlotPos(i);
+            const s = worldToScreen(pos.x, pos.y);
+            const rc = RARITY[o.rarity] || RARITY.common;
+            ctx.font = "22px system-ui,sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(o.emoji, s.x, s.y);
+            ctx.font = "6px system-ui,sans-serif";
+            ctx.fillStyle = rc.color;
+            ctx.fillText(o.rarity.slice(0, 3).toUpperCase(), s.x, s.y + 8);
+          });
+          if (stories > 1) {
+            drawStairs(f);
+            if (f === player.floor) {
+              const s = stairsRect(f);
+              const st = worldToScreen(s.x + s.w / 2, s.y + s.h / 2);
+              ctx.fillStyle = "rgba(255,235,59,0.22)";
+              ctx.beginPath();
+              ctx.arc(st.x, st.y, 28, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
     });
   }
 
@@ -828,6 +1029,13 @@
       drawPlayer(st.x ?? b.x + b.w / 2, st.y ?? b.y + b.h / 2, "#ef5350", p.name);
     });
     drawPlayer(player.x, player.y, "#42a5f5", state.name);
+    if (player.floor > 0) {
+      const s = worldToScreen(player.x, player.y - 12);
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "600 7px system-ui,sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`F${player.floor + 1}`, s.x, s.y);
+    }
   }
 
   function gameLoop(ts) {
@@ -849,8 +1057,25 @@
     }
     player.x = Math.max(WALL_PAD + 16, Math.min(WORLD_W - WALL_PAD - 16, player.x));
     player.y = Math.max(WALL_PAD + 16, Math.min(WORLD_H - WALL_PAD - 16, player.y));
-    cam.x += (player.x - cam.x) * 0.1;
-    cam.y += (player.y - cam.y) * 0.1;
+    player.floor = player.floor || 0;
+    enforcePlayerFloor();
+
+    if (floorChangeCd > 0) floorChangeCd -= 0.016;
+    if (floorChangeCd <= 0 && canUseFloorControls()) {
+      if (keys.e || keys.E) goFloor(1);
+      else if (keys.q || keys.Q) goFloor(-1);
+      else if (onStairs()) {
+        if (my < -0.35) goFloor(1);
+        else if (my > 0.35) goFloor(-1);
+      }
+    }
+
+    if (window.AllOutCamera) {
+      AllOutCamera.follow(cam, player.x, player.y, 0.016, mx, my, 10);
+    } else {
+      cam.x += (player.x - cam.x) * 0.1;
+      cam.y += (player.y - cam.y) * 0.1;
+    }
 
     if (ts - lastSpawn > SPAWN_INTERVAL_MS) {
       lastSpawn = ts;
@@ -878,7 +1103,7 @@
     assignBaseSlot();
     saveState();
     const b = myBaseRect();
-    player = { x: b.x + b.w / 2, y: b.y + b.h / 2, facing: 1 };
+    player = { x: b.x + b.w / 2, y: b.y + b.h / 2, facing: 1, floor: 0 };
     cam = { x: player.x, y: player.y };
     belt = [];
     lastSpawn = 0;
@@ -903,6 +1128,7 @@
           x: player.x,
           y: player.y,
           facing: player.facing,
+          floor: player.floor,
           cash: state.cash,
           baseSlot: myBaseSlot(),
         }),
@@ -932,12 +1158,90 @@
     canvas.height = Math.max(240, Math.floor(rect.height));
   }
 
+  function bindTouchMove() {
+    if (!wrap || wrap.dataset.touchMove) return;
+    wrap.dataset.touchMove = "1";
+    let pid = null;
+    let origin = null;
+    const cap = 56;
+    const ignoreTarget = (el) => el?.closest?.(
+      "#joystick-base, .action-dock, .world-overlay, button, input, a, label, #game-header, .floor-btn"
+    );
+
+    const setFromPointer = (e) => {
+      if (!origin) return;
+      let dx = e.clientX - origin.x;
+      let dy = e.clientY - origin.y;
+      const m = Math.hypot(dx, dy);
+      if (m > cap) {
+        dx = (dx / m) * cap;
+        dy = (dy / m) * cap;
+      }
+      moveJoy.dx = dx / cap;
+      moveJoy.dy = dy / cap;
+      moveJoy.active = true;
+    };
+
+    const endTouch = () => {
+      pid = null;
+      origin = null;
+      moveJoy.dx = 0;
+      moveJoy.dy = 0;
+      moveJoy.active = false;
+    };
+
+    wrap.addEventListener("pointerdown", (e) => {
+      if (ignoreTarget(e.target)) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.clientX > window.innerWidth * 0.58) return;
+      pid = e.pointerId;
+      origin = { x: e.clientX, y: e.clientY };
+      try { wrap.setPointerCapture(pid); } catch (_) { /* ignore */ }
+      e.preventDefault();
+      setFromPointer(e);
+    }, { passive: false });
+
+    wrap.addEventListener("pointermove", (e) => {
+      if (e.pointerId !== pid) return;
+      e.preventDefault();
+      setFromPointer(e);
+    }, { passive: false });
+
+    wrap.addEventListener("pointerup", (e) => {
+      if (e.pointerId !== pid) return;
+      try { wrap.releasePointerCapture(pid); } catch (_) { /* ignore */ }
+      endTouch();
+    });
+    wrap.addEventListener("pointercancel", (e) => {
+      if (e.pointerId !== pid) return;
+      endTouch();
+    });
+  }
+
+  function bindStairsTap() {
+    if (!wrap || wrap.dataset.stairsTap) return;
+    wrap.dataset.stairsTap = "1";
+    wrap.addEventListener("pointerup", (e) => {
+      if (!playing || storyCount() <= 1) return;
+      if (e.target.closest(".action-dock, .world-overlay, button, input, #joystick-base")) return;
+      const rect = canvas.getBoundingClientRect();
+      const p = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+      const stairFloor = stairsAtWorld(p.x, p.y);
+      if (stairFloor == null) return;
+      player.floor = player.floor || 0;
+      if (stairFloor > player.floor) goFloor(stairFloor - player.floor);
+      else if (stairFloor < player.floor) goFloor(stairFloor - player.floor);
+    });
+  }
+
   function bindEvents() {
     document.getElementById("buy-btn")?.addEventListener("click", buyBeltItem);
     document.getElementById("sell-btn")?.addEventListener("click", openSell);
     document.getElementById("sell-yes-btn")?.addEventListener("click", doSell);
     document.getElementById("sell-no-btn")?.addEventListener("click", closeSell);
     document.getElementById("rebirth-btn")?.addEventListener("click", openRebirth);
+    document.getElementById("floor-up-btn")?.addEventListener("click", () => goFloor(1));
+    document.getElementById("floor-down-btn")?.addEventListener("click", () => goFloor(-1));
     document.getElementById("rebirth-yes-btn")?.addEventListener("click", doRebirth);
     document.getElementById("rebirth-no-btn")?.addEventListener("click", closeRebirth);
     document.getElementById("hub-btn")?.addEventListener("click", () => {
@@ -949,6 +1253,8 @@
       window.location.href = "../../index.html";
     });
     if (typeof AllOutControls !== "undefined") AllOutControls.bindJoystick(moveJoy, keys);
+    bindTouchMove();
+    bindStairsTap();
     window.addEventListener("resize", resize);
   }
 
@@ -965,7 +1271,9 @@
   }
 
   function cameraConfig() {
-    return { height: 11, distance: 10, fov: 42, fogFar: 150, lookAtY: 0.55 };
+    return window.AllOutCamera?.standard3D() || {
+      style: "fixed", height: 11, distance: 10, fov: 42, fogFar: 150, lookAtY: 0.55, lerp: 0.1,
+    };
   }
 
   function basePropScale(rect, isFloor) {
@@ -999,6 +1307,7 @@
         x: TUNNEL_X + Math.cos(angle) * dist,
         y: TUNNEL_Y + 60 + Math.sin(angle) * dist * 0.35,
         model: "grass_clump",
+        color: "#69ff69",
         scale: 0.85 + (i % 3) * 0.2,
         yLift: 0,
       });
@@ -1010,6 +1319,7 @@
         x: TUNNEL_X + side * (BELT_W / 2 + 45 + (i % 6) * 28),
         y: BELT_TOP + 40 + i * ((BELT_BOT - BELT_TOP) / 24),
         model: "grass_clump",
+        color: "#69ff69",
         scale: 0.75 + (i % 4) * 0.15,
         yLift: 0,
       });
@@ -1041,6 +1351,18 @@
           ...sizing,
           yLift: f * (FLOOR_LIFT_WORLD * WORLD_TO_3D),
         });
+        if (isMine && stories > 1) {
+          const stair = stairsRect(f);
+          props.push({
+            id: `stairs_${slot}_f${f}`,
+            x: stair.x + stair.w / 2,
+            y: groundPlaneY(stair.y + stair.h / 2, f),
+            model: "prop",
+            color: f < stories - 1 ? "#fdd835" : "#ce93d8",
+            scale: 0.55,
+            yLift: f * (FLOOR_LIFT_WORLD * WORLD_TO_3D) + 0.08,
+          });
+        }
       }
     });
     return props;
@@ -1086,15 +1408,16 @@
       })),
       ...state.owned.map((o, i) => {
         const pos = ownedSlotPos(i);
+        const floorLift = pos.floor * (FLOOR_LIFT_WORLD * WORLD_TO_3D);
         return {
           id: `owned${o.uid}`,
           x: pos.x,
-          y: pos.y,
+          y: groundPlaneY(pos.y, pos.floor),
           model: brainrotModel(o),
           color: RARITY[o.rarity]?.color || "#9e9e9e",
           scale: ownedScale(o.rarity),
           facing: (i & 1) ? -1 : 1,
-          yLift: 0.32,
+          yLift: floorLift + 0.32,
         };
       }),
       ...remotePlayers.map((p, i) => {
@@ -1114,23 +1437,38 @@
     return {
       worldW: WORLD_W,
       worldH: WORLD_H,
-      ground: "#57d957",
+      ground: "#38ef38",
       defaultModel: "brainrot",
       useCanvas: false,
       camera: cameraConfig(),
       player: {
         x: player.x,
-        y: player.y,
+        y: groundPlaneY(player.y, player.floor || 0),
         facing: player.facing,
         model: "lifter",
         color: "#42a5f5",
         scale: 0.58,
-        yLift: 0,
+        yLift: (player.floor || 0) * (FLOOR_LIFT_WORLD * WORLD_TO_3D),
       },
       props,
       entities,
     };
   };
+
+  function reloadSavedState() {
+    state = loadState();
+    state.name = hubPlayerName();
+    updateHud();
+  }
+
+  if (window.BecomeAProSave) {
+    BecomeAProSave.registerGameSave(SAVE_KEY, () => state);
+    BecomeAProSave.registerGameReload(SAVE_KEY, reloadSavedState);
+    BecomeAProSave.onRestore(reloadSavedState);
+  }
+  if (window.__bapWatchSave) {
+    __bapWatchSave(SAVE_KEY, reloadSavedState);
+  }
 
   function init() {
     canvas = document.getElementById("game-canvas");
@@ -1146,5 +1484,5 @@
     requestAnimationFrame(() => startGame());
   }
 
-  init();
+  __bapDeferInit(init);
 })();

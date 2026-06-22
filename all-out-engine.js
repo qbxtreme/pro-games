@@ -6,7 +6,6 @@
 
   const PATH_OVERRIDES = {
     "fat-simulator": "games/fat-simulator/",
-    "raise-a-monster": "games/raise-a-monster/",
     fishermon: "games/fishermon/",
     "mob-battle": "games/mob-battle/",
     "hungry-snake-worm": "games/snake-io/",

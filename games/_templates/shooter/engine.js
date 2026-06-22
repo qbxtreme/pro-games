@@ -401,8 +401,13 @@
       return true;
     });
 
-    cam.x += ((you?.x || 500) - cam.x) * 0.1;
-    cam.y += ((you?.y || 400) - cam.y) * 0.1;
+    const m = getMoveInput();
+    if (window.AllOutCamera) {
+      AllOutCamera.followTopLeft(cam, you?.x || 500, you?.y || 400, w, h, 0.016, m.dx, m.dy, 10);
+    } else {
+      cam.x += ((you?.x || 500) - cam.x) * 0.1;
+      cam.y += ((you?.y || 400) - cam.y) * 0.1;
+    }
     updateHud();
     draw();
     requestAnimationFrame(tick);

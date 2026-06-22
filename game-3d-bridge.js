@@ -1,7 +1,15 @@
 (function () {
   "use strict";
 
-  const SKIP = new Set(["ranked-battling", "brawl-stars-mod", "mini-brawl-stars"]);
+  /** Only these games use the shared 3D layer (Ranked Battling uses its own world3d.js). */
+  const ALLOW_3D = new Set([
+    "steal-a-poop",
+    "steal-a-brainrot",
+    "ranked-battling",
+    "mini-brawl-stars",
+    "brawl-stars-mod",
+    "snake-io",
+  ]);
 
   function gameId() {
     const m = location.pathname.match(/games\/([^/]+)/);
@@ -10,7 +18,7 @@
 
   function mount() {
     const id = gameId();
-    if (SKIP.has(id) || !window.THREE || !window.Game3DCore) return;
+    if (!ALLOW_3D.has(id) || !window.THREE || !window.Game3DCore) return;
 
     const wrap = document.getElementById("game-wrap") || document.getElementById("world-wrap");
     if (!wrap || document.getElementById("game3d-layer")) return;
@@ -25,11 +33,11 @@
     let active = false;
 
     function tick() {
-      const id = gameId();
-      const getter = window.getGame3DState || window.Game3DAdapters?.[id];
+      const gid = gameId();
+      const getter = window.getGame3DState || window.Game3DAdapters?.[gid];
       let state = getter ? getter() : null;
-      if (!state && id && window.Game3DAdapters?.generic) {
-        state = Game3DAdapters.generic(id);
+      if (!state && gid && window.Game3DAdapters?.generic) {
+        state = Game3DAdapters.generic(gid);
       }
       if (state) {
         Game3DCore.syncState(state);

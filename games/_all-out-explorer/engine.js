@@ -497,12 +497,14 @@
   }
 
   function worldToScreen(wx, wy) {
-    return { x: wx - cam.x + w * 0.5, y: wy - cam.y + h * 0.52 };
+    if (window.AllOutCamera) return AllOutCamera.worldToScreen(wx, wy, cam, w, h);
+    return { x: wx - cam.x + w * 0.5, y: wy - cam.y + h * 0.5 };
   }
 
   function drawWorld() {
-    const camX = cam.x - w * 0.5;
-    const camY = cam.y - h * 0.52;
+    const origin = window.AllOutCamera ? AllOutCamera.camOrigin(cam, w, h) : { x: cam.x - w * 0.5, y: cam.y - h * 0.5 };
+    const camX = origin.x;
+    const camY = origin.y;
     const zone = currentZone();
 
     ctx.fillStyle = "#87ceeb";
@@ -653,8 +655,12 @@
       player.facing = dx >= 0 ? 1 : -1;
     }
 
-    cam.x += (player.x - cam.x) * Math.min(1, dt * 8);
-    cam.y += (player.y - cam.y) * Math.min(1, dt * 8);
+    if (window.AllOutCamera) {
+      AllOutCamera.follow(cam, player.x, player.y, dt, dx, dy, 8);
+    } else {
+      cam.x += (player.x - cam.x) * Math.min(1, dt * 8);
+      cam.y += (player.y - cam.y) * Math.min(1, dt * 8);
+    }
 
     if (zone.isPier) {
       state.coins += parkIncomeRate() * dt;
@@ -1246,7 +1252,7 @@
 
   function boot() {
     applyUiLabels();
-    init();
+    __bapDeferInit(init);
   }
 
   if (document.readyState === "loading") {

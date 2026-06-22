@@ -9,7 +9,15 @@
   let camTarget = new THREE.Vector3();
   let animId = null;
   let running = false;
-  let camConfig = { height: 22, distance: 20, fov: 50, fogFar: 220, lookAtY: 1.5 };
+  let camConfig = {
+    style: "fixed",
+    height: 11,
+    distance: 10,
+    fov: 42,
+    fogFar: 150,
+    lookAtY: 0.55,
+    lerp: 0.1,
+  };
 
   function hexColor(c) {
     if (typeof c === "number") return c;
@@ -251,8 +259,8 @@
       top.position.y = 2.45;
       g.add(top);
     } else if (type === "grass_clump") {
-      const bladeMat = new THREE.MeshStandardMaterial({ color: 0x66bb6a, roughness: 0.92, metalness: 0 });
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x43a047, roughness: 0.95, metalness: 0 });
+      const bladeMat = new THREE.MeshStandardMaterial({ color: color ? col : 0x66bb6a, roughness: 0.92, metalness: 0 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: color ? 0x00e676 : 0x43a047, roughness: 0.95, metalness: 0 });
       [[0, 0], [-0.14, 0.08], [0.12, -0.06], [-0.08, -0.1], [0.16, 0.1]].forEach(([x, z], i) => {
         const m = i % 2 === 0 ? bladeMat : darkMat;
         const blade = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.32 + i * 0.05, 5), m);
@@ -336,7 +344,8 @@
       const p = toWorld(state.player.x, state.player.y, ww, wh);
       const yLift = state.player.yLift || 0;
       ent.mesh.position.set(p.x, yLift, p.z);
-      ent.mesh.rotation.y = state.player.rot ?? (state.player.facing === -1 ? Math.PI : 0);
+      const yaw = state.player.rot ?? (state.player.facing === -1 ? Math.PI : 0);
+      ent.mesh.rotation.y = yaw;
       ent.mesh.scale.setScalar(state.player.scale || 1);
       ent.mesh.userData.baseY = yLift;
     }
@@ -397,11 +406,13 @@
     clock.getDelta();
 
     if (camera && camTarget) {
-      camera.position.lerp(
-        new THREE.Vector3(camTarget.x, camTarget.y + camConfig.height, camTarget.z + camConfig.distance),
-        0.1
+      const desiredCam = new THREE.Vector3(
+        camTarget.x,
+        camTarget.y + (camConfig.height ?? 11),
+        camTarget.z + (camConfig.distance ?? 10)
       );
-      camera.lookAt(camTarget.x, camConfig.lookAtY ?? 1.5, camTarget.z);
+      camera.position.lerp(desiredCam, camConfig.lerp ?? 0.1);
+      camera.lookAt(camTarget.x, camConfig.lookAtY ?? 0.55, camTarget.z);
       entityMap.forEach((ent) => {
         const baseY = ent.mesh.userData.baseY ?? 0;
         ent.mesh.position.y = baseY + Math.sin(performance.now() * 0.003 + ent.mesh.id) * 0.04;
@@ -420,8 +431,8 @@
       scene.background = new THREE.Color(0x87ceeb);
       scene.fog = new THREE.Fog(0x87ceeb, 40, 220);
 
-      camera = new THREE.PerspectiveCamera(50, 1, 0.1, 400);
-      camera.position.set(0, 22, 20);
+      camera = new THREE.PerspectiveCamera(camConfig.fov ?? 42, 1, 0.1, 400);
+      camera.position.set(0, 11, 10);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.shadowMap.enabled = true;

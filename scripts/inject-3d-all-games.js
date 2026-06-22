@@ -6,12 +6,12 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const GAMES = path.join(ROOT, "games");
-const SKIP = new Set([
-  "ranked-battling",
-  "brawl-stars-mod",
-  "mini-brawl-stars",
-  "_templates",
-  "_all-out-explorer",
+
+/** Must match game-3d-bridge.js ALLOW_3D (except ranked-battling — uses world3d.js). */
+const ALLOW_3D = new Set([
+  "steal-a-poop",
+  "steal-a-brainrot",
+  "snake-io",
 ]);
 
 const LINKS = `
@@ -30,7 +30,15 @@ function depthToRoot(file) {
   return "../".repeat(depth + 1);
 }
 
+function gameFolder(file) {
+  const rel = path.relative(GAMES, path.dirname(file));
+  return rel.split(path.sep)[0] || "";
+}
+
 function inject(file) {
+  const folder = gameFolder(file);
+  if (!ALLOW_3D.has(folder)) return false;
+
   let html = fs.readFileSync(file, "utf8");
   if (html.includes("game-3d-bridge.js")) return false;
 
@@ -63,7 +71,7 @@ function inject(file) {
 function walk(dir) {
   let n = 0;
   for (const name of fs.readdirSync(dir)) {
-    if (SKIP.has(name) || name.startsWith("_")) continue;
+    if (name.startsWith("_")) continue;
     const p = path.join(dir, name);
     const st = fs.statSync(p);
     if (st.isDirectory()) n += walk(p);

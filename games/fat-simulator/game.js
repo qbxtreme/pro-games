@@ -319,11 +319,13 @@
   }
 
   function worldToScreen(wx, wy) {
-    return { x: wx - camSmooth.x + w * 0.5, y: wy - camSmooth.y + h * 0.52 };
+    if (window.AllOutCamera) return AllOutCamera.worldToScreen(wx, wy, camSmooth, w, h);
+    return { x: wx - camSmooth.x + w * 0.5, y: wy - camSmooth.y + h * 0.5 };
   }
 
   function screenToWorld(sx, sy) {
-    return { x: sx + camSmooth.x - w * 0.5, y: sy + camSmooth.y - h * 0.52 };
+    if (window.AllOutCamera) return AllOutCamera.screenToWorld(sx, sy, camSmooth, w, h);
+    return { x: sx + camSmooth.x - w * 0.5, y: sy + camSmooth.y - h * 0.5 };
   }
 
   function initDust() {
@@ -526,8 +528,12 @@
     const bdy = BOWL.y - player.y;
     nearBowl = bdx * bdx + bdy * bdy < BOWL.r * BOWL.r;
 
-    camSmooth.x += (player.x - camSmooth.x) * Math.min(1, dt * 9);
-    camSmooth.y += (player.y - camSmooth.y) * Math.min(1, dt * 9);
+    if (window.AllOutCamera) {
+      AllOutCamera.follow(camSmooth, player.x, player.y, dt, dx, dy, 9);
+    } else {
+      camSmooth.x += (player.x - camSmooth.x) * Math.min(1, dt * 9);
+      camSmooth.y += (player.y - camSmooth.y) * Math.min(1, dt * 9);
+    }
 
     dustMotes.forEach((d) => {
       d.x += Math.cos(d.a) * d.sp;
@@ -874,8 +880,9 @@
   }
 
   function drawHomeWorld() {
-    const camX = camSmooth.x - w * 0.5;
-    const camY = camSmooth.y - h * 0.52;
+    const origin = window.AllOutCamera ? AllOutCamera.camOrigin(camSmooth, w, h) : { x: camSmooth.x - w * 0.5, y: camSmooth.y - h * 0.5 };
+    const camX = origin.x;
+    const camY = origin.y;
 
     ctx.fillStyle = "#1a1410";
     ctx.fillRect(0, 0, w, h);
@@ -1724,7 +1731,7 @@
     resize();
   }
 
-  init();
+  __bapDeferInit(init);
 
   window.__fatSim3D = function () {
     if (!playing) return null;

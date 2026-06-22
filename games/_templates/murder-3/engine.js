@@ -694,8 +694,12 @@
         endRound("murderer", "Time ran out — the killer got away with it!");
       }
 
-      cam.x += (you.x - cam.x) * 0.1;
-      cam.y += (you.y - cam.y) * 0.1;
+      if (window.AllOutCamera) {
+        AllOutCamera.follow(cam, you.x, you.y, dt, mv.dx, mv.dy, 10);
+      } else {
+        cam.x += (you.x - cam.x) * 0.1;
+        cam.y += (you.y - cam.y) * 0.1;
+      }
 
       updateHotbar(true);
       updateBots(dt);
@@ -803,7 +807,7 @@
     requestAnimationFrame(gameLoop);
   }
 
-  init();
+  __bapDeferInit(init);
 
   window.__murder3D = function () {
     if (!playing || !round?.you) return null;

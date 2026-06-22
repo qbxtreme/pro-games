@@ -123,7 +123,6 @@ const HUB_HIDDEN_GAME_IDS = new Set(["hungry-snake-worm"]);
 /** All Out catalog ids that use a custom full implementation folder. */
 const ALLOUT_PATH_OVERRIDES = {
   "fat-simulator": "games/fat-simulator/",
-  "raise-a-monster": "games/raise-a-monster/",
   "fishermon": "games/fishermon/",
   "mob-battle": "games/mob-battle/",
   "hungry-snake-worm": "games/snake-io/",
@@ -137,7 +136,6 @@ function resolveGamePath(gameId) {
 
 const ALLOUT_TITLE_OVERRIDES = {
   "fat-simulator": "Coco Devouring",
-  "raise-a-monster": "Raising a Monster",
 };
 
 /** Emoji shown on hub play tiles (replaces thumbnail images). */
@@ -151,7 +149,6 @@ const GAME_EMOJIS = {
   "mob-battle": "⚔️",
   "hungry-snake-worm": "🐍",
   "fat-simulator": "🐶",
-  "raise-a-monster": "👾",
   "steal-a-poop": "💩",
   "steal-a-brainrot": "🧠",
 };
@@ -1083,11 +1080,14 @@ async function initHub() {
   if (window.BecomeAProSave) {
     BecomeAProSave.syncProTokens();
     hubState = loadHubState();
-    const restored = await BecomeAProSave.restoreFromCloudIfNewer();
+    const restored = await BecomeAProSave.whenReady;
+    hubState = loadHubState();
     if (restored) {
-      hubState = loadHubState();
-      showHubToast("Welcome back — your Pro Tokens & progress were restored! 🪙");
+      const name = window.BecomeAProSave?.resolvePlayerName?.() || "Player";
+      showHubToast(`Welcome back ${name} — your items & progress were restored! 🎮`);
     }
+  } else if (window.PRO_GAMES?.staticHost) {
+    showHubToast("GitHub Pages can't load cloud saves — use npm start locally to restore items.");
   }
   syncTokenBalance();
   if (!hubState.completedPurchases) hubState.completedPurchases = [];
