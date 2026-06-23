@@ -392,11 +392,17 @@
     return "entities";
   }
 
+  function pixelRatio() {
+    return Math.min(window.devicePixelRatio || 1, 3);
+  }
+
   function resize() {
     if (!container || !renderer || !camera) return;
     const w = container.clientWidth;
     const h = container.clientHeight;
-    renderer.setSize(w, h);
+    const dpr = pixelRatio();
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
@@ -437,7 +443,7 @@
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(pixelRatio());
       if (renderer.outputEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
       if (THREE.ACESFilmicToneMapping) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;

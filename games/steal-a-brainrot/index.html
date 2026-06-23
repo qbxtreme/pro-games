@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Steal a BrainRot</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3.6">
   <link rel="stylesheet" href="../_templates/base/all-out-base.css">
   <link rel="stylesheet" href="../../game-realism.css">
   <link rel="stylesheet" href="../../game-3d.css">
@@ -71,25 +71,26 @@
     </div>
   </div>
 
+  <script src="../../static-host.js"></script>
   <script src="../_templates/base/all-out-controls.js"></script>
   <script src="../_templates/base/game-save-boot.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="brainrots.js"></script>
-  <script src="brainrot-models.js"></script>
-  <script src="game.js"></script>
-  <script src="../../game-3d-core.js"></script>
-  <script src="../../game-3d-adapters.js"></script>
-  <script src="../../game-3d-bridge.js"></script>
+  <script src="brainrots.js?v=3.6"></script>
+  <script src="brainrot-models.js?v=3.6"></script>
+  <script src="game.js?v=3.6"></script>
+  <script src="../../game-3d-core.js?v=3.6"></script>
+  <script src="../../game-3d-adapters.js?v=3.6"></script>
+  <script src="../../game-3d-bridge.js?v=3.6"></script>
   <script src="../../game-sfx.js"></script>
   <script src="../../game-multiplayer.js"></script>
   <script src="../_templates/base/game-mp-bootstrap.js"></script>
   <script src="../../game-chat.js"></script>
-  <script src="../../game-realism.js"></script>
+  <script src="../../game-realism.js?v=3.6"></script>
   <script src="../_templates/base/game-realism-bootstrap.js"></script>
   <script>
     GameChat.init({
       room: "steal-a-brainrot",
-      getName: () => (window.HubPlayer?.get?.() || "Player"),
+      getName: () => (localStorage.getItem("becomeAProChatName") || "Player"),
     });
   </script>
 </body>

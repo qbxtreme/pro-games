@@ -16,9 +16,23 @@
     return m ? m[1] : "";
   }
 
+  /** Steal a BrainRot: iPad/touch uses sharp 2D (3D hides canvas and looks bad on tablets). */
+  function stealBrainrotPrefer2D() {
+    if (window.__stealBrainrotPrefer2D === true) return true;
+    if (window.__stealBrainrotPrefer2D === false) return false;
+    const coarse = window.matchMedia?.("(pointer: coarse)")?.matches;
+    const mobileUa = /iPad|iPhone|iPod|Android|Mobile/i.test(navigator.userAgent || "");
+    return coarse || mobileUa || (navigator.maxTouchPoints > 1 && window.innerWidth < 1180);
+  }
+
+  function shouldUse3D(id) {
+    if (id === "steal-a-brainrot" && stealBrainrotPrefer2D()) return false;
+    return ALLOW_3D.has(id);
+  }
+
   function mount() {
     const id = gameId();
-    if (!ALLOW_3D.has(id) || !window.THREE || !window.Game3DCore) return;
+    if (!shouldUse3D(id) || !window.THREE || !window.Game3DCore) return;
 
     const wrap = document.getElementById("game-wrap") || document.getElementById("world-wrap");
     if (!wrap || document.getElementById("game3d-layer")) return;

@@ -3,6 +3,8 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 #app.game-3d-active .world-wrap .joystick-wrap,
@@ -21,10 +23,36 @@
   height: 100%;
 }
 
+#app.steal-brainrot-2d #game-canvas,
+#app.steal-brainrot-2d #world-canvas {
+  opacity: 1 !important;
+  pointer-events: none;
+  filter: contrast(1.08) saturate(1.14) brightness(1.04) !important;
+}
+
+#app.steal-brainrot-2d #game3d-layer {
+  display: none !important;
+}
+
+#app.steal-brainrot-2d #game-wrap .gr-atmosphere,
+#app.steal-brainrot-2d #world-wrap .gr-atmosphere {
+  display: none !important;
+}
+
 #app.game-3d-active #game-canvas,
 #app.game-3d-active #world-canvas {
   opacity: 0 !important;
   pointer-events: none;
+}
+
+#app.game-3d-active #game-wrap .gr-atmosphere,
+#app.game-3d-active #world-wrap .gr-atmosphere {
+  display: none !important;
+}
+
+#app.game-3d-active #game3d-layer canvas {
+  image-rendering: auto;
+  filter: contrast(1.04) saturate(1.12) brightness(1.04);
 }
 
 #app.game-3d-active .world-wrap #world-canvas {

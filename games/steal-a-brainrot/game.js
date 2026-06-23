@@ -37,6 +37,27 @@
   const BELT_NEAR_R = 130;
   const OWNED_NEAR_R = 52;
 
+  const BUILD_VERSION = "3.6";
+
+  window.__stealBrainrotPrefer2D = /iPad|iPhone|iPod|Android|Mobile/i.test(navigator.userAgent || "")
+    || (window.matchMedia?.("(pointer: coarse)")?.matches ?? false)
+    || (navigator.maxTouchPoints > 1 && window.innerWidth < 1180);
+
+  function prefer2DMode() {
+    return !!window.__stealBrainrotPrefer2D;
+  }
+
+  function setRenderModeClass() {
+    const app = document.getElementById("app");
+    if (!app) return;
+    if (prefer2DMode()) {
+      app.classList.add("steal-brainrot-2d");
+      app.classList.remove("game-3d-active");
+    } else {
+      app.classList.remove("steal-brainrot-2d");
+    }
+  }
+
   function buildBaseLayout() {
     const layout = [];
     const startY = BELT_TOP + 18;
@@ -76,7 +97,9 @@
   let remotePlayers = [];
   let animT = 0;
   let sellTargetIndex = null;
-  let floorChangeCd = 0;
+  let canvasDpr = 1;
+  let viewW = 800;
+  let viewH = 600;
 
   function defaultState() {
     return { name: "Player", cash: 100, owned: [], rebirths: 0, baseSlot: null };
@@ -256,12 +279,17 @@
     return y + floorLift(floor || 0);
   }
 
+  function canvasView() {
+    return { w: viewW, h: viewH };
+  }
+
   function screenToWorld(sx, sy) {
+    const { w, h } = canvasView();
     const ac = window.AllOutCamera;
-    if (ac && canvas) return ac.screenToWorld(sx, sy, cam, canvas.width, canvas.height);
+    if (ac && canvas) return ac.screenToWorld(sx, sy, cam, w, h);
     return {
-      x: sx + cam.x - canvas.width / 2,
-      y: sy + cam.y - canvas.height / 2,
+      x: sx + cam.x - w / 2,
+      y: sy + cam.y - h / 2,
     };
   }
 
@@ -290,9 +318,9 @@
     const next = player.floor + delta;
     if (next < 0 || next > max) return false;
     player.floor = next;
-    const s = stairsRect(next);
-    player.x = s.x + s.w / 2;
-    player.y = s.y + s.h / 2;
+    const walk = floorWalkRect(next);
+    player.x = walk.x + walk.w / 2;
+    player.y = walk.y + walk.h / 2;
     cam.x = player.x;
     cam.y = player.y;
     floorChangeCd = 0.4;
@@ -308,6 +336,30 @@
       && y >= fr.y + pad && y <= fr.y + fr.h - pad;
   }
 
+  function floorWalkRect(floor) {
+    const b = myBaseRect();
+    const fr = baseFloorRect(b, floor);
+    const pad = 18;
+    return {
+      x: fr.x + pad,
+      y: fr.y + pad,
+      w: fr.w - pad * 2,
+      h: fr.h - pad * 2,
+    };
+  }
+
+  function clampPlayerPosition() {
+    player.floor = player.floor || 0;
+    if (player.floor > 0) {
+      const walk = floorWalkRect(player.floor);
+      player.x = Math.max(walk.x, Math.min(walk.x + walk.w, player.x));
+      player.y = Math.max(walk.y, Math.min(walk.y + walk.h, player.y));
+      return;
+    }
+    player.x = Math.max(WALL_PAD + 16, Math.min(WORLD_W - WALL_PAD - 16, player.x));
+    player.y = Math.max(WALL_PAD + 16, Math.min(WORLD_H - WALL_PAD - 16, player.y));
+  }
+
   function enforcePlayerFloor() {
     player.floor = player.floor || 0;
     const stories = storyCount();
@@ -316,11 +368,7 @@
       player.floor = 0;
       return;
     }
-    const b = myBaseRect();
-    const fr = baseFloorRect(b, player.floor);
-    const pad = 18;
-    player.x = Math.max(fr.x + pad, Math.min(fr.x + fr.w - pad, player.x));
-    player.y = Math.max(fr.y + pad, Math.min(fr.y + fr.h - pad, player.y));
+    clampPlayerPosition();
   }
 
   function drawStairs(floor) {
@@ -670,24 +718,27 @@
   }
 
   function worldToScreen(x, y) {
+    const { w, h } = canvasView();
     const ac = window.AllOutCamera;
-    if (ac) return ac.worldToScreen(x, y, cam, canvas.width, canvas.height);
-    return { x: x - cam.x + canvas.width / 2, y: y - cam.y + canvas.height / 2 };
+    if (ac) return ac.worldToScreen(x, y, cam, w, h);
+    return { x: x - cam.x + w / 2, y: y - cam.y + h / 2 };
   }
 
   function camViewOrigin() {
+    const { w, h } = canvasView();
     const ac = window.AllOutCamera;
-    if (ac) return ac.camOrigin(cam, canvas.width, canvas.height);
-    return { x: cam.x - canvas.width / 2, y: cam.y - canvas.height / 2 };
+    if (ac) return ac.camOrigin(cam, w, h);
+    return { x: cam.x - w / 2, y: cam.y - h / 2 };
   }
 
   function drawGrass() {
     const tile = 48;
+    const { w, h } = canvasView();
     const origin = camViewOrigin();
     const startX = Math.floor(origin.x / tile) * tile;
     const startY = Math.floor(origin.y / tile) * tile;
-    for (let gy = startY; gy < origin.y + canvas.height + tile; gy += tile) {
-      for (let gx = startX; gx < origin.x + canvas.width + tile; gx += tile) {
+    for (let gy = startY; gy < origin.y + h + tile; gy += tile) {
+      for (let gx = startX; gx < origin.x + w + tile; gx += tile) {
         const s = worldToScreen(gx, gy);
         const alt = ((Math.floor(gx / tile) + Math.floor(gy / tile)) & 1) === 0;
         ctx.fillStyle = alt ? "#7dff7d" : "#32ef32";
@@ -768,6 +819,25 @@
     ctx.fillText("CONVEYOR", top.x + (bot.x - top.x) / 2, top.y - 8);
   }
 
+  function drawFloorPillars(rect, stories, stroke) {
+    if (stories <= 1) return;
+    const px = 28;
+    const pillars = [rect.x + px, rect.x + rect.w - px];
+    pillars.forEach((x) => {
+      for (let f = 0; f < stories - 1; f++) {
+        const yTop = rect.y - (f + 1) * FLOOR_LIFT_WORLD;
+        const yBot = rect.y - f * FLOOR_LIFT_WORLD + rect.h;
+        const tl = worldToScreen(x - 8, yTop);
+        const br = worldToScreen(x + 8, yBot);
+        ctx.fillStyle = "rgba(55, 71, 79, 0.55)";
+        ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+      }
+    });
+  }
+
   function drawBase() {
     const occupants = baseOccupants();
     const mySlot = myBaseSlot();
@@ -789,15 +859,19 @@
         const br = worldToScreen(rect.x + rect.w, rect.y + rect.h - lift);
         let floorFill = fill;
         if (f > 0) {
-          if (!occupant) floorFill = "rgba(120, 144, 156, 0.12)";
-          else if (isMine) floorFill = "rgba(66, 165, 245, 0.16)";
-          else floorFill = "rgba(239, 83, 80, 0.14)";
+          if (!occupant) floorFill = "rgba(120, 144, 156, 0.18)";
+          else if (isMine) floorFill = "rgba(66, 165, 245, 0.22)";
+          else floorFill = "rgba(239, 83, 80, 0.18)";
         }
         ctx.fillStyle = floorFill;
         ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
         ctx.strokeStyle = stroke;
         ctx.lineWidth = f === 0 ? 3 : 2;
         ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+        if (isMine && f > 0) {
+          ctx.fillStyle = "rgba(255,255,255,0.12)";
+          ctx.fillRect(tl.x + 4, tl.y + 4, br.x - tl.x - 8, 10);
+        }
         if (f === 0) {
           ctx.fillStyle = occupant ? "#fff" : "rgba(255,255,255,0.75)";
           ctx.font = occupant ? "bold 11px system-ui,sans-serif" : "600 10px system-ui,sans-serif";
@@ -810,9 +884,9 @@
           }
         } else if (isMine) {
           ctx.fillStyle = "#fff";
-          ctx.font = "600 9px system-ui,sans-serif";
+          ctx.font = prefer2DMode() ? "bold 11px system-ui,sans-serif" : "600 9px system-ui,sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText(`Floor ${f + 1}`, tl.x + (br.x - tl.x) / 2, tl.y + 14);
+          ctx.fillText(`🏢 FLOOR ${f + 1}`, tl.x + (br.x - tl.x) / 2, tl.y + 16);
         }
 
         if (isMine) {
@@ -821,7 +895,8 @@
             const pos = ownedSlotPos(i);
             const s = worldToScreen(pos.x, pos.y);
             const rc = RARITY[o.rarity] || RARITY.common;
-            ctx.font = "22px system-ui,sans-serif";
+            const emojiSize = prefer2DMode() ? 28 : 22;
+            ctx.font = `${emojiSize}px system-ui,sans-serif`;
             ctx.textAlign = "center";
             ctx.fillText(o.emoji, s.x, s.y);
             ctx.font = "6px system-ui,sans-serif";
@@ -841,6 +916,7 @@
           }
         }
       }
+      if (isMine && stories > 1) drawFloorPillars(rect, stories, stroke);
     });
   }
 
@@ -1055,18 +1131,16 @@
       player.y += (my / m) * speed;
       player.facing = mx >= 0 ? 1 : -1;
     }
-    player.x = Math.max(WALL_PAD + 16, Math.min(WORLD_W - WALL_PAD - 16, player.x));
-    player.y = Math.max(WALL_PAD + 16, Math.min(WORLD_H - WALL_PAD - 16, player.y));
-    player.floor = player.floor || 0;
+    clampPlayerPosition();
     enforcePlayerFloor();
 
     if (floorChangeCd > 0) floorChangeCd -= 0.016;
     if (floorChangeCd <= 0 && canUseFloorControls()) {
       if (keys.e || keys.E) goFloor(1);
       else if (keys.q || keys.Q) goFloor(-1);
-      else if (onStairs()) {
-        if (my < -0.35) goFloor(1);
-        else if (my > 0.35) goFloor(-1);
+      else if (onStairs() && Math.abs(mx) < 0.3) {
+        if (my < -0.45) goFloor(1);
+        else if (my > 0.45) goFloor(-1);
       }
     }
 
@@ -1095,6 +1169,10 @@
   }
 
   function hubPlayerName() {
+    try {
+      const chat = localStorage.getItem("becomeAProChatName");
+      if (chat && chat.trim()) return chat.trim().slice(0, 16);
+    } catch (_) {}
     return window.HubPlayer?.get?.() || state.name || "Player";
   }
 
@@ -1102,6 +1180,7 @@
     state.name = hubPlayerName();
     assignBaseSlot();
     saveState();
+    setRenderModeClass();
     const b = myBaseRect();
     player = { x: b.x + b.w / 2, y: b.y + b.h / 2, facing: 1, floor: 0 };
     cam = { x: player.x, y: player.y };
@@ -1119,6 +1198,16 @@
     updateHud();
     incomeTimer = setInterval(tickIncome, 1000);
     requestAnimationFrame(gameLoop);
+    if (storyCount() <= 1 && state.rebirths < REBIRTH_FLOOR_STEP) {
+      flashHint(`♻️ Rebirth ${REBIRTH_FLOOR_STEP} times to unlock floor 2`);
+    } else if (storyCount() > 1) {
+      flashHint(`🏢 ${storyCount()} floors unlocked · walk to base · tap ⬆️`);
+    }
+    if (window.PRO_GAMES?.staticHost && state.rebirths < 1) {
+      setTimeout(() => {
+        flashHint("Tip: open from your home server to sync creator progress");
+      }, 3200);
+    }
     if (window.GameMP) {
       GameMP.init({
         game: "steal-a-brainrot",
@@ -1152,10 +1241,17 @@
   }
 
   function resize() {
-    if (!wrap || !canvas) return;
+    if (!wrap || !canvas || !ctx) return;
     const rect = wrap.getBoundingClientRect();
-    canvas.width = Math.max(320, Math.floor(rect.width));
-    canvas.height = Math.max(240, Math.floor(rect.height));
+    viewW = Math.max(320, Math.floor(rect.width));
+    viewH = Math.max(240, Math.floor(rect.height));
+    canvasDpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = Math.max(1, Math.floor(viewW * canvasDpr));
+    canvas.height = Math.max(1, Math.floor(viewH * canvasDpr));
+    canvas.style.width = `${viewW}px`;
+    canvas.style.height = `${viewH}px`;
+    ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
   }
 
   function bindTouchMove() {
@@ -1255,7 +1351,10 @@
     if (typeof AllOutControls !== "undefined") AllOutControls.bindJoystick(moveJoy, keys);
     bindTouchMove();
     bindStairsTap();
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", () => {
+      resize();
+      setRenderModeClass();
+    });
   }
 
   function rarityScale(rarity) {
@@ -1271,8 +1370,17 @@
   }
 
   function cameraConfig() {
-    return window.AllOutCamera?.standard3D() || {
-      style: "fixed", height: 11, distance: 10, fov: 42, fogFar: 150, lookAtY: 0.55, lerp: 0.1,
+    const touchDevice = window.matchMedia?.("(pointer: coarse)")?.matches
+      || /iPad|iPhone|iPod|Android/i.test(navigator.userAgent || "");
+    return window.AllOutCamera?.standard3D({
+      fov: touchDevice ? 46 : 42,
+      height: touchDevice ? 12 : 11,
+      distance: touchDevice ? 11 : 10,
+      fogFar: 200,
+      lookAtY: 0.55,
+      lerp: 0.12,
+    }) || {
+      style: "fixed", height: 11, distance: 10, fov: 42, fogFar: 200, lookAtY: 0.55, lerp: 0.1,
     };
   }
 
@@ -1369,7 +1477,7 @@
   }
 
   window.__stealABrainrot3D = function () {
-    if (!playing) return null;
+    if (!playing || prefer2DMode()) return null;
     const beltLen = (BELT_BOT - BELT_TOP) * 0.045;
     const props = [
       ...buildWallProps(),
@@ -1474,9 +1582,22 @@
     canvas = document.getElementById("game-canvas");
     wrap = document.getElementById("game-wrap");
     ctx = canvas.getContext("2d");
+    window.getGameRealismOpts = function () {
+      if (prefer2DMode()) return false;
+      if (document.getElementById("app")?.classList.contains("game-3d-active")) return false;
+      const { w, h } = canvasView();
+      return {
+        focusX: w * 0.5,
+        focusY: h * 0.52,
+        vignette: 0.2,
+        grain: false,
+        haze: false,
+      };
+    };
     state = loadState();
     state.name = hubPlayerName();
     bindEvents();
+    setRenderModeClass();
     resize();
     updateHud();
     document.body.classList.add("hub-direct-entry");

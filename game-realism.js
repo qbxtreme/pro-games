@@ -164,6 +164,7 @@
   function shouldAutoApply() {
     if (!autoEnabled || window.GR_DISABLE_AUTO) return false;
     const app = document.getElementById("app");
+    if (app?.classList.contains("game-3d-active")) return false;
     if (app?.classList.contains("playing")) return true;
     if (document.body.classList.contains("world-play-mode")) return true;
     const forest = document.getElementById("tab-forest");

@@ -477,11 +477,12 @@ html, body {
 }
 
 .joystick-wrap {
-  position: fixed;
-  left: max(16px, env(safe-area-inset-left, 0px));
-  bottom: max(18px, env(safe-area-inset-bottom, 0px));
-  z-index: 30;
+  position: fixed !important;
+  left: max(16px, env(safe-area-inset-left, 0px)) !important;
+  bottom: max(18px, env(safe-area-inset-bottom, 0px)) !important;
+  z-index: 35 !important;
   touch-action: none;
+  pointer-events: auto;
 }
 
 .joystick-wrap.hidden { display: none !important; }

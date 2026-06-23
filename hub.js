@@ -115,6 +115,17 @@ const BAP_ORIGINALS = [
     engine: "local",
     available: true,
   },
+  {
+    id: "escape-tsunami-brainrot",
+    title: "Escape Tsunami for BrainRot",
+    emoji: "🌊",
+    description: "Outrun the tsunami wave — grab BrainRots and reach high ground!",
+    path: "games/escape-tsunami-brainrot/",
+    tag: "Action",
+    engine: "local",
+    available: false,
+    comingSoon: true,
+  },
 ];
 
 /** Catalog games hidden from the main hub (played elsewhere). */
@@ -151,6 +162,7 @@ const GAME_EMOJIS = {
   "fat-simulator": "🐶",
   "steal-a-poop": "💩",
   "steal-a-brainrot": "🧠",
+  "escape-tsunami-brainrot": "🌊",
 };
 
 const TAG_EMOJIS = {
