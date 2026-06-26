@@ -32,6 +32,7 @@ const CHAT_MAX_NAME = 16;
 const GAME_REQUESTS_FILE = path.join(ROOT, "game-requests.jsonl");
 const GAME_REQUEST_MAX = 500;
 const PROGRESS_DIR = path.join(ROOT, "data", "player-progress");
+const SAVES_DIR = path.join(ROOT, "saves");
 const PROGRESS_MAX_BYTES = 512000;
 
 function sanitizeGameRequestText(text) {
@@ -262,6 +263,33 @@ async function handleMultiplayerGet(req, res, pathname, searchParams) {
     return true;
   }
 
+  if (pathname === "/api/mp/online" && req.method === "GET") {
+    mpCleanup();
+    const byGame = {};
+    const players = [];
+    for (const p of MP_PLAYERS.values()) {
+      const g = p.game || "unknown";
+      if (!byGame[g]) byGame[g] = [];
+      byGame[g].push({
+        id: p.id,
+        name: p.name,
+        subroom: p.subroom,
+      });
+      players.push({
+        id: p.id,
+        name: p.name,
+        game: g,
+        subroom: p.subroom,
+      });
+    }
+    sendJson(res, 200, {
+      total: players.length,
+      byGame,
+      players,
+    });
+    return true;
+  }
+
   return false;
 }
 
@@ -310,6 +338,57 @@ function progressFileForPlayer(player) {
     .digest("hex")
     .slice(0, 24);
   return path.join(PROGRESS_DIR, `${id}.json`);
+}
+
+function ingestVeteranEntry(entry, byName) {
+  if (!entry?.snapshot) return;
+  const snap = entry.snapshot;
+  const pname = sanitizeChatText(entry.player || snap.player, CHAT_MAX_NAME);
+  if (!pname || pname === "Player") return;
+  const hub = snap.hub || {};
+  const gamesPlayed = Object.keys(hub.gamesPlayed || {}).filter((g) => hub.gamesPlayed[g]);
+  if (!gamesPlayed.length) return;
+  const savedAt = entry.savedAt || snap.savedAt || 0;
+  const key = pname.toLowerCase();
+  const existing = byName.get(key);
+  if (existing && existing.savedAt >= savedAt) return;
+  byName.set(key, {
+    name: pname,
+    gamesPlayed,
+    gameCount: gamesPlayed.length,
+    proLevel: hub.proLevel || 1,
+    favoriteGame: gamesPlayed[gamesPlayed.length - 1],
+    savedAt,
+  });
+}
+
+function loadProgressVeterans() {
+  const byName = new Map();
+  const dirs = [PROGRESS_DIR, SAVES_DIR];
+  dirs.forEach((dir) => {
+    let files = [];
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      files = fs.readdirSync(dir);
+    } catch (_) {
+      return;
+    }
+    files.forEach((name) => {
+      if (!name.endsWith(".json")) return;
+      try {
+        const entry = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+        ingestVeteranEntry(entry, byName);
+      } catch (_) {}
+    });
+  });
+  return [...byName.values()].sort((a, b) => b.savedAt - a.savedAt);
+}
+
+function handleVeteransApi(req, res) {
+  if (req.method !== "GET") return false;
+  const veterans = loadProgressVeterans();
+  sendJson(res, 200, { veterans, count: veterans.length });
+  return true;
 }
 
 function progressSnapshotScore(snapshot) {
@@ -442,6 +521,10 @@ async function handleApi(req, res, pathname, searchParams) {
     const handled = await handleProgressApi(req, res, searchParams);
     if (handled !== false) return;
     return sendJson(res, 405, { error: "Method not allowed." });
+  }
+
+  if (pathname === "/api/players/veterans") {
+    if (handleVeteransApi(req, res)) return;
   }
 
   if (pathname.startsWith("/api/chat")) {

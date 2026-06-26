@@ -1,14 +1,15 @@
 (function () {
   "use strict";
 
-  /** Only these games use the shared 3D layer (Ranked Battling uses its own world3d.js). */
-  const ALLOW_3D = new Set([
+  const LEGACY_3D = new Set([
     "steal-a-poop",
     "steal-a-brainrot",
     "ranked-battling",
     "mini-brawl-stars",
     "brawl-stars-mod",
     "snake-io",
+    "players",
+    "escape-tsunami-brainrot",
   ]);
 
   function gameId() {
@@ -16,8 +17,7 @@
     return m ? m[1] : "";
   }
 
-  /** Steal a BrainRot: iPad/touch uses sharp 2D (3D hides canvas and looks bad on tablets). */
-  function stealBrainrotPrefer2D() {
+  function touchPrefer2D() {
     if (window.__stealBrainrotPrefer2D === true) return true;
     if (window.__stealBrainrotPrefer2D === false) return false;
     const coarse = window.matchMedia?.("(pointer: coarse)")?.matches;
@@ -26,8 +26,11 @@
   }
 
   function shouldUse3D(id) {
-    if (id === "steal-a-brainrot" && stealBrainrotPrefer2D()) return false;
-    return ALLOW_3D.has(id);
+    if (window.ProGamesGraphics?.shouldUse3D) {
+      return ProGamesGraphics.shouldUse3D(id);
+    }
+    if (id === "steal-a-brainrot" && touchPrefer2D()) return false;
+    return LEGACY_3D.has(id);
   }
 
   function mount() {

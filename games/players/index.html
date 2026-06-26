@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Players</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../_templates/base/all-out-base.css">
+  <link rel="stylesheet" href="../../game-3d.css">
+  <link rel="stylesheet" href="../../game-multiplayer.css">
+</head>
+<body>
+  <div id="app" class="playing">
+    <header id="game-header">
+      <div class="hud-top">
+        <button id="hub-btn" type="button" class="hub-back-btn" title="Back to Hub">← Hub</button>
+        <span id="online-pill" class="stat-pill">👥 0 online</span>
+        <span id="lobby-pill" class="stat-pill">🟢 Spawn</span>
+      </div>
+      <p class="hud-hint">Walk the lobby · veterans stand around spawn · panel shows live players</p>
+    </header>
+
+    <div id="game-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <aside id="player-panel" aria-label="Players in games">
+        <h2>👥 Players in Games</h2>
+        <p id="online-status">Loading...</p>
+        <div id="game-roster"></div>
+      </aside>
+
+      <div class="joystick-wrap" id="joystick-wrap">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../_templates/base/all-out-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../../game-3d-core.js"></script>
+  <script src="../../game-3d-adapters.js"></script>
+  <script src="../../game-3d-bridge.js"></script>
+  <script src="../../game-multiplayer.js"></script>
+  <script src="game.js"></script>
+  <script>
+    window.markGameMpCustom?.();
+  </script>
+  <script src="../steal-a-brainrot/brainrot-models.js"></script>
+  <script src="../../game-3d-dragon.js"></script>
+  <script src="../../pro-games-graphics.js"></script>
+  <script src="../../game-3d-generic.js"></script>
+</body>
+</html>

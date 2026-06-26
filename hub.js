@@ -96,9 +96,9 @@ const BAP_ORIGINALS = [
   },
   {
     id: "steal-a-poop",
-    title: "Steal a Poop",
+    title: "Make them step on poo",
     emoji: "💩",
-    description: "Grab poops from the conveyor and steal from other players!",
+    description: "Lay traps and trick other players into stepping on poo!",
     path: "games/steal-a-poop/",
     tag: "Multi",
     engine: "local",
@@ -123,8 +123,17 @@ const BAP_ORIGINALS = [
     path: "games/escape-tsunami-brainrot/",
     tag: "Action",
     engine: "local",
-    available: false,
-    comingSoon: true,
+    available: true,
+  },
+  {
+    id: "players",
+    title: "Players",
+    emoji: "👥",
+    description: "Spawn in the lobby and see who is playing every Pro Games title!",
+    path: "games/players/",
+    tag: "Multi",
+    engine: "local",
+    available: true,
   },
 ];
 
@@ -163,6 +172,7 @@ const GAME_EMOJIS = {
   "steal-a-poop": "💩",
   "steal-a-brainrot": "🧠",
   "escape-tsunami-brainrot": "🌊",
+  players: "👥",
 };
 
 const TAG_EMOJIS = {
@@ -1139,10 +1149,56 @@ async function initHub() {
   setupWheel();
   setupMaxGear();
   setupResetProgress();
+  renderGraphicsStylePicker();
+  applyHubUpdateBanner();
+  maybeShowUpdateToast();
   if (window.BecomeAProOwner) BecomeAProOwner.isActive();
   if (window.ProMaxGear && !localStorage.getItem(ProMaxGear.FLAG_KEY)) {
     ProMaxGear.applyIfNeeded(showHubToast);
   }
+}
+
+function applyHubUpdateBanner() {
+  const upd = window.HUB_UPDATE;
+  if (!upd) return;
+  const banner = document.getElementById("hub-update-banner");
+  const versionEl = document.getElementById("hub-update-version");
+  if (banner) banner.setAttribute("aria-label", `New ${upd.title}`);
+  if (versionEl) versionEl.textContent = upd.title;
+}
+
+function maybeShowUpdateToast() {
+  const upd = window.HUB_UPDATE;
+  if (!upd?.seenKey || !upd.highlights?.length) return;
+  try {
+    if (localStorage.getItem(upd.seenKey) === upd.id) return;
+    localStorage.setItem(upd.seenKey, upd.id);
+  } catch (_) {
+    return;
+  }
+  const preview = upd.highlights.slice(0, 2).join(" · ");
+  showHubToast(`${upd.title} is live! ${preview}`);
+}
+
+function renderGraphicsStylePicker() {
+  const wrap = document.getElementById("graphics-style-picker");
+  if (!wrap || !window.ProGamesGraphics) return;
+  const current = ProGamesGraphics.getStyleId();
+  wrap.innerHTML = "";
+  ProGamesGraphics.listStyles().forEach((style) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "graphics-style-option" + (style.id === current ? " selected" : "");
+    btn.setAttribute("role", "radio");
+    btn.setAttribute("aria-checked", style.id === current ? "true" : "false");
+    btn.innerHTML = `<strong>${style.label}</strong><span>${style.description}</span>`;
+    btn.addEventListener("click", () => {
+      ProGamesGraphics.setStyleId(style.id);
+      renderGraphicsStylePicker();
+      showHubToast(`Graphics: ${style.label} — reload open games to apply.`);
+    });
+    wrap.appendChild(btn);
+  });
 }
 
 function setupMaxGear() {

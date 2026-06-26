@@ -30,8 +30,20 @@
       return call(window.__stealAPoop3D);
     },
 
+    players() {
+      return call(window.__players3D);
+    },
+
+    "escape-tsunami-brainrot"() {
+      return call(window.__escapeTsunamiBrainrot3D);
+    },
+
     generic(id) {
       if (!id) return null;
+      if (window.Game3DGeneric) {
+        const g = call(() => Game3DGeneric(id));
+        if (g) return g;
+      }
       const fn = window[`__${id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())}3D`];
       return fn ? call(fn) : null;
     },

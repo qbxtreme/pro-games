@@ -269,6 +269,31 @@
         blade.rotation.z = (i - 2) * 0.06;
         g.add(blade);
       });
+    } else if (type === "dot") {
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), emissive);
+      dot.position.y = 0.1;
+      dot.scale.set(1, 0.28, 1);
+      g.add(dot);
+    } else if (type === "trench") {
+      const pitMat = new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 0.92, metalness: 0.05 });
+      const pit = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.32, 2.2), pitMat);
+      pit.position.y = 0.1;
+      g.add(pit);
+      const lip = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.07, 2.35), mat);
+      lip.position.y = 0.3;
+      g.add(lip);
+    } else if (type === "wave") {
+      const water = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.4, 5.5), new THREE.MeshStandardMaterial({
+        color: col,
+        transparent: true,
+        opacity: 0.78,
+        emissive: col,
+        emissiveIntensity: 0.3,
+        roughness: 0.25,
+        metalness: 0.15,
+      }));
+      water.position.y = 1.05;
+      g.add(water);
     } else {
       const body = new THREE.Mesh(new THREE.SphereGeometry(0.65, 12, 10), mat);
       body.position.y = 0.65;

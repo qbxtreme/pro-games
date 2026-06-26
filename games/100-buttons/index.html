@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../../game-chat.css">
   <link rel="stylesheet" href="../../game-multiplayer.css">
   <link rel="stylesheet" href="../../game-realism.css">
+  <link rel="stylesheet" href="../../game-3d.css">
 </head>
 <body>
   <div id="app">
@@ -83,5 +84,13 @@
       getName: function () { var el = document.getElementById("name-input"); return el && el.value.trim() || undefined; },
     });
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../steal-a-brainrot/brainrot-models.js"></script>
+  <script src="../../game-3d-dragon.js"></script>
+  <script src="../../game-3d-core.js"></script>
+  <script src="../../pro-games-graphics.js"></script>
+  <script src="../../game-3d-adapters.js"></script>
+  <script src="../../game-3d-generic.js"></script>
+  <script src="../../game-3d-bridge.js"></script>
 </body>
 </html>

@@ -37,14 +37,13 @@
   const BELT_NEAR_R = 130;
   const OWNED_NEAR_R = 52;
 
-  const BUILD_VERSION = "3.6";
+  const BUILD_VERSION = "4CA9";
 
-  window.__stealBrainrotPrefer2D = /iPad|iPhone|iPod|Android|Mobile/i.test(navigator.userAgent || "")
-    || (window.matchMedia?.("(pointer: coarse)")?.matches ?? false)
-    || (navigator.maxTouchPoints > 1 && window.innerWidth < 1180);
+  window.__stealBrainrotPrefer2D = false;
 
   function prefer2DMode() {
-    return !!window.__stealBrainrotPrefer2D;
+    const gfx = window.ProGamesGraphics?.getStyleId?.();
+    return gfx === "sharp-2d" || gfx === "all-out-2d";
   }
 
   function setRenderModeClass() {
@@ -895,13 +894,12 @@
             const pos = ownedSlotPos(i);
             const s = worldToScreen(pos.x, pos.y);
             const rc = RARITY[o.rarity] || RARITY.common;
-            const emojiSize = prefer2DMode() ? 28 : 22;
-            ctx.font = `${emojiSize}px system-ui,sans-serif`;
-            ctx.textAlign = "center";
-            ctx.fillText(o.emoji, s.x, s.y);
+            const spriteSize = prefer2DMode() ? 34 : 28;
+            drawBrainrotSprite(ctx, s.x, s.y, o, spriteSize);
             ctx.font = "6px system-ui,sans-serif";
+            ctx.textAlign = "center";
             ctx.fillStyle = rc.color;
-            ctx.fillText(o.rarity.slice(0, 3).toUpperCase(), s.x, s.y + 8);
+            ctx.fillText(o.rarity.slice(0, 3).toUpperCase(), s.x, s.y + spriteSize * 0.45);
           });
           if (stories > 1) {
             drawStairs(f);
@@ -927,9 +925,7 @@
       ctx.save();
       ctx.shadowColor = rc.glow;
       ctx.shadowBlur = item.def.rarity === "og" ? 12 : 5;
-      ctx.font = "22px system-ui,sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(item.def.emoji, s.x, s.y + 8);
+      drawBrainrotSprite(ctx, s.x, s.y + 8, item.def, 30);
       ctx.restore();
       return;
     }
@@ -967,13 +963,21 @@
 
     ctx.shadowColor = rc.glow;
     ctx.shadowBlur = item.def.rarity === "og" ? 18 : 8;
-    ctx.font = "28px system-ui,sans-serif";
-    ctx.fillText(item.def.emoji, s.x, s.y + 8);
+    drawBrainrotSprite(ctx, s.x, s.y + 8, item.def, prefer2DMode() ? 36 : 32);
     ctx.restore();
   }
 
   function isGame3DActive() {
     return document.getElementById("app")?.classList.contains("game-3d-active");
+  }
+
+  function drawBrainrotSprite(ctx, x, y, def, size, opts) {
+    if (isGame3DActive()) return;
+    if (window.BrainrotPortraits?.draw(ctx, x, y, def, size, opts)) return;
+    const emojiSize = Math.round((size || 28) * 0.65);
+    ctx.font = `${emojiSize}px system-ui,sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(def?.emoji || "🧠", x, y + emojiSize * 0.15);
   }
 
   function updateBeltLabels() {
@@ -1373,12 +1377,12 @@
     const touchDevice = window.matchMedia?.("(pointer: coarse)")?.matches
       || /iPad|iPhone|iPod|Android/i.test(navigator.userAgent || "");
     return window.AllOutCamera?.standard3D({
-      fov: touchDevice ? 46 : 42,
-      height: touchDevice ? 12 : 11,
-      distance: touchDevice ? 11 : 10,
+      fov: touchDevice ? 48 : 42,
+      height: touchDevice ? 13 : 11,
+      distance: touchDevice ? 12 : 10,
       fogFar: 200,
       lookAtY: 0.55,
-      lerp: 0.12,
+      lerp: touchDevice ? 0.14 : 0.12,
     }) || {
       style: "fixed", height: 11, distance: 10, fov: 42, fogFar: 200, lookAtY: 0.55, lerp: 0.1,
     };

@@ -6,23 +6,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const GAMES = path.join(ROOT, "games");
-
-/** Must match game-3d-bridge.js ALLOW_3D (except ranked-battling — uses world3d.js). */
-const ALLOW_3D = new Set([
-  "steal-a-poop",
-  "steal-a-brainrot",
-  "snake-io",
-]);
-
-const LINKS = `
-  <link rel="stylesheet" href="../../game-3d.css">`;
-
-const SCRIPTS = `
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="../../game-3d-dragon.js"></script>
-  <script src="../../game-3d-core.js"></script>
-  <script src="../../game-3d-adapters.js"></script>
-  <script src="../../game-3d-bridge.js"></script>`;
+const SKIP = new Set(["steal-a-poop"]);
 
 function depthToRoot(file) {
   const rel = path.relative(GAMES, path.dirname(file));
@@ -30,42 +14,62 @@ function depthToRoot(file) {
   return "../".repeat(depth + 1);
 }
 
-function gameFolder(file) {
+function brainrotModelsPrefix(file) {
   const rel = path.relative(GAMES, path.dirname(file));
-  return rel.split(path.sep)[0] || "";
+  const depth = rel.split(path.sep).filter(Boolean).length;
+  if (depth === 0) return "../steal-a-brainrot/";
+  return "../".repeat(depth) + "steal-a-brainrot/";
+}
+
+function gameFolder(file) {
+  return path.relative(GAMES, path.dirname(file)).split(path.sep)[0] || "";
 }
 
 function inject(file) {
   const folder = gameFolder(file);
-  if (!ALLOW_3D.has(folder)) return false;
+  if (SKIP.has(folder)) return false;
 
   let html = fs.readFileSync(file, "utf8");
-  if (html.includes("game-3d-bridge.js")) return false;
+  if (html.includes("coming-soon.css") && !html.includes("id=\"game-canvas\"") && !html.includes("id=\"world-canvas\"")) {
+    return false;
+  }
 
   const prefix = depthToRoot(file);
-  const css = LINKS.replace(/\.\.\/\.\.\//g, prefix);
-  const scripts = SCRIPTS.replace(/\.\.\/\.\.\//g, prefix);
+  const brPrefix = brainrotModelsPrefix(file);
+  let changed = false;
 
-  if (html.includes("game-realism.css")) {
-    html = html.replace(
-      /(<link rel="stylesheet" href="[^"]*game-realism\.css">)/,
-      `$1${css}`
-    );
-  } else if (html.includes("</head>")) {
-    html = html.replace("</head>", `${css}\n</head>`);
+  if (!html.includes("game-3d.css")) {
+    const css = `  <link rel="stylesheet" href="${prefix}game-3d.css">`;
+    if (html.includes("</head>")) {
+      html = html.replace("</head>", `${css}\n</head>`);
+      changed = true;
+    }
   }
 
-  if (html.includes("game-chat.js")) {
-    html = html.replace(
-      /(<script src="[^"]*game-chat\.js"><\/script>)/,
-      `${scripts}\n  $1`
-    );
-  } else {
-    html = html.replace("</body>", `${scripts}\n</body>`);
-  }
+  const coreScripts = [
+    `  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>`,
+    `  <script src="${brPrefix}brainrot-models.js"></script>`,
+    `  <script src="${prefix}game-3d-dragon.js"></script>`,
+    `  <script src="${prefix}game-3d-core.js"></script>`,
+    `  <script src="${prefix}pro-games-graphics.js"></script>`,
+    `  <script src="${prefix}game-3d-adapters.js"></script>`,
+    `  <script src="${prefix}game-3d-generic.js"></script>`,
+    `  <script src="${prefix}game-3d-bridge.js"></script>`,
+  ];
 
-  fs.writeFileSync(file, html);
-  return true;
+  coreScripts.forEach((tag) => {
+    const src = tag.match(/src="([^"]+)"/)[1];
+    const base = src.split("/").pop();
+    if (!html.includes(base)) {
+      html = html.replace("</body>", `${tag}\n</body>`);
+      changed = true;
+    }
+  });
+
+  if (!html.includes("pro-games-graphics.js")) return false;
+
+  if (changed) fs.writeFileSync(file, html);
+  return changed;
 }
 
 function walk(dir) {
@@ -75,14 +79,12 @@ function walk(dir) {
     const p = path.join(dir, name);
     const st = fs.statSync(p);
     if (st.isDirectory()) n += walk(p);
-    else if (name === "index.html") {
-      if (inject(p)) {
-        console.log("3D:", path.relative(ROOT, p));
-        n++;
-      }
+    else if (name === "index.html" && inject(p)) {
+      console.log("3D:", path.relative(ROOT, p));
+      n++;
     }
   }
   return n;
 }
 
-console.log(`Injected 3D into ${walk(GAMES)} games.`);
+console.log(`Updated 3D stack in ${walk(GAMES)} games.`);
